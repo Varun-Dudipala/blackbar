@@ -1,0 +1,399 @@
+{
+  "device": {
+    "when": "2026-11-18T23:57:28.651Z",
+    "chip": "On-device model ready",
+    "samples": {
+      "rfe": {
+        "scan": {
+          "status": "done",
+          "ms": 9806
+        },
+        "glance": {
+          "status": "done",
+          "ms": 15163
+        },
+        "wallMs": 15235,
+        "found": "9/9",
+        "missed": [],
+        "bars": 13,
+        "modelBars": [
+          "Riley Sample"
+        ],
+        "glanceType": "Request for evidence",
+        "glanceError": null,
+        "expectedDeadline": "2026-12-15",
+        "glanceDeadlines": [
+          "2026-12-15"
+        ],
+        "deadlineCorrect": true,
+        "deadlineInLetter": true,
+        "deadlineBarred": false
+      },
+      "rent": {
+        "scan": {
+          "status": "done",
+          "ms": 5058
+        },
+        "glance": {
+          "status": "done",
+          "ms": 9404
+        },
+        "wallMs": 9445,
+        "found": "7/7",
+        "missed": [],
+        "bars": 11,
+        "modelBars": [],
+        "glanceType": "Past due rent notice",
+        "glanceError": null,
+        "expectedDeadline": "2026-11-23",
+        "glanceDeadlines": [
+          "2026-11-23"
+        ],
+        "deadlineCorrect": true,
+        "deadlineInLetter": true,
+        "deadlineBarred": false
+      },
+      "bursar": {
+        "scan": {
+          "status": "done",
+          "ms": 4651
+        },
+        "glance": {
+          "status": "done",
+          "ms": 10211
+        },
+        "wallMs": 10255,
+        "found": "5/5",
+        "missed": [],
+        "bars": 10,
+        "modelBars": [],
+        "glanceType": "Registration hold notice",
+        "glanceError": null,
+        "expectedDeadline": "2026-11-30",
+        "glanceDeadlines": [
+          "2026-11-30",
+          "2026-12-08"
+        ],
+        "deadlineCorrect": true,
+        "deadlineInLetter": true,
+        "deadlineBarred": false
+      }
+    },
+    "offline": {
+      "chip": "On-device model ready",
+      "navigatorOnLine": false,
+      "samples": {
+        "rfe": {
+          "scan": {
+            "status": "done",
+            "ms": 5051
+          },
+          "glance": {
+            "status": "done",
+            "ms": 9903
+          },
+          "wallMs": 9947,
+          "found": "9/9",
+          "missed": [],
+          "glanceDeadlines": [
+            "2026-12-15"
+          ],
+          "deadlineCorrect": true,
+          "deadlineBarred": false
+        },
+        "rent": {
+          "scan": {
+            "status": "done",
+            "ms": 4441
+          },
+          "glance": {
+            "status": "done",
+            "ms": 9496
+          },
+          "wallMs": 9538,
+          "found": "7/7",
+          "missed": [],
+          "glanceDeadlines": [
+            "2026-11-23"
+          ],
+          "deadlineCorrect": true,
+          "deadlineBarred": false
+        },
+        "bursar": {
+          "scan": {
+            "status": "done",
+            "ms": 4549
+          },
+          "glance": {
+            "status": "done",
+            "ms": 9807
+          },
+          "wallMs": 9848,
+          "found": "5/5",
+          "missed": [],
+          "glanceDeadlines": [
+            "2026-11-30",
+            "2026-12-08"
+          ],
+          "deadlineCorrect": true,
+          "deadlineBarred": false
+        }
+      },
+      "offlineNoticeShown": true,
+      "calls": [
+        {
+          "side": "on_device",
+          "label": "Find identifiers",
+          "time": "5.0 s"
+        },
+        {
+          "side": "on_device",
+          "label": "At a glance",
+          "time": "9.9 s"
+        },
+        {
+          "side": "on_device",
+          "label": "Find identifiers",
+          "time": "4.4 s"
+        },
+        {
+          "side": "on_device",
+          "label": "At a glance",
+          "time": "9.5 s"
+        },
+        {
+          "side": "on_device",
+          "label": "Find identifiers",
+          "time": "4.5 s"
+        },
+        {
+          "side": "on_device",
+          "label": "At a glance",
+          "time": "9.8 s"
+        }
+      ]
+    },
+    "image": {
+      "transcribeMs": 17898,
+      "idsVerbatimInTranscript": "9/9",
+      "missingFromTranscript": [],
+      "fixes": [],
+      "afterSeal": {
+        "found": "9/9",
+        "missed": [],
+        "glanceDeadlines": [
+          "2026-12-15"
+        ],
+        "deadlineCorrect": true
+      }
+    },
+    "onlineCalls": [
+      {
+        "side": "on_device",
+        "label": "Find identifiers",
+        "time": "9.7 s"
+      },
+      {
+        "side": "on_device",
+        "label": "At a glance",
+        "time": "15.1 s"
+      },
+      {
+        "side": "on_device",
+        "label": "Find identifiers",
+        "time": "5.0 s"
+      },
+      {
+        "side": "on_device",
+        "label": "At a glance",
+        "time": "9.4 s"
+      },
+      {
+        "side": "on_device",
+        "label": "Find identifiers",
+        "time": "4.6 s"
+      },
+      {
+        "side": "on_device",
+        "label": "At a glance",
+        "time": "10.1 s"
+      }
+    ],
+    "allOnDevice": true,
+    "externalRequestsOnline": [],
+    "externalRequests": [],
+    "pageErrors": []
+  },
+  "cloud": {
+    "mockCloud": false,
+    "when": "2026-11-19T00:02:43.244Z",
+    "answers": {
+      "rfeExplain": {
+        "status": "done",
+        "inferenceSource": "in_cloud",
+        "ms": 1499,
+        "firstTokenMs": 841,
+        "chars": 1281,
+        "placeholders": 4,
+        "error": null,
+        "text": "What This Letter Is and Who Sent ItThis is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for Optional Practical Training (OPT) for NAME 1 (A-Number: A NUMBER 1).Why You Received ItUSCIS is reviewing your application for employment authorization and has determined that the currently submitted evidence is not sufficient to establish your eligibility.What It Asks ForYou must submit:A copy of Form I-20 endorsed by your Designated School Official within the last 30 days, showing the post-completion OPT recommendation.A copy of your passport biographic page.Two passport-style photographs with your name and A NUMBER 1 written lightly on the back.A copy of your marriage certificate listing your spouse, NAME 2.You must include this notice with your response and mail everything to the address listed on the letter.DeadlineYour response must be received by December 15, 2026.What Happens If You Do NothingIf USCIS does not receive the requested evidence by the deadline, they will decide your application based on the existing record, and it may be denied.Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+      },
+      "rfeFollowUp": {
+        "status": "done",
+        "inferenceSource": "in_cloud",
+        "ms": 1004,
+        "firstTokenMs": 780,
+        "chars": 401,
+        "placeholders": 0,
+        "error": null,
+        "text": "The letter states: \"Send this notice with your response to the address above.\"However, the letter does not explicitly state whether the two passport-style photographs can be uploaded online or if they must be mailed. It only lists the physical preparation required (\"with your name and A-Number written lightly on the back\") and tells you to send the notice with your response to the address provided.",
+        "questionSent": "Does NAME 1 have to mail the two passport photos, or can they be uploaded?"
+      },
+      "rentChecklistEs": {
+        "status": "done",
+        "inferenceSource": "in_cloud",
+        "ms": 1667,
+        "firstTokenMs": 785,
+        "chars": 1059,
+        "placeholders": 6,
+        "error": null,
+        "text": "La fecha límite para realizar el pago o contactar a la oficina es el November 23, 2026.Revisar el contrato de arrendamiento en la sección 4 para verificar los detalles sobre la renta de $1,450.00 y el cargo por pago tardío de $75.00 (referencia ACCOUNT 2).Reunir los datos de su cuenta, incluyendo su Tenant ID ACCOUNT 1, para realizar el pago total de $1,525.00.Realizar el pago antes del November 23, 2026 mediante el portal de residentes, con un giro postal (money order) en la oficina, o con un cheque pagadero a Maple Court Apartments.Contactar a la oficina en PHONE 1 antes de la fecha límite si tiene problemas para pagar y desea analizar un plan de pagos.Informar a la administración si sus datos de contacto han cambiado, ya que tienen registrado el teléfono PHONE 2 y el correo EMAIL 1.Antes de enviar:Asegurarse de que el monto total de $1,525.00 esté cubierto.Escribir su Tenant ID ACCOUNT 1 en el cheque si elige esa forma de pago.Verificar que el pago se efectúe a más tardar el November 23, 2026 para evitar una notificación formal de desalojo."
+      },
+      "bursarDraft": {
+        "status": "done",
+        "inferenceSource": "in_cloud",
+        "ms": 1217,
+        "firstTokenMs": 717,
+        "chars": 903,
+        "placeholders": 6,
+        "error": null,
+        "text": "Subject: Registration Hold / Health Insurance - NAME 1 (Student ID: ACCOUNT 1)Dear Office of Student Accounts and Student Health Insurance,I am writing regarding the registration hold and the $1,286.00 spring term charge on my student account (Student ID: ACCOUNT 1, SEVIS ID: SEVIS 1).I am submitting the online waiver form using my current insurance policy (Member ID: ACCOUNT 2). Along with the form, I am attaching [describe the document you are attaching, such as my insurance card and policy certificate].Could you please confirm whether my waiver submission is complete, and approximately how long it typically takes to process and remove the registration hold once the waiver is submitted?Thank you for your assistance.Sincerely,NAME 1Note to the reader: You should check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+      },
+      "offlineOnDevice": {
+        "status": "done",
+        "inferenceSource": "on_device",
+        "ms": 4505,
+        "firstTokenMs": null,
+        "chars": 789,
+        "placeholders": 0,
+        "error": null,
+        "text": "This letter is from Example State University's Student Accounts office and informs you about a charge for student health insurance that is stopping you from registering for spring classes.Here is what you need to do:Have your insurance waiver approved: If you have existing health insurance, submit an online waiver form with your policy details by November 30, 2026.Pay the charge: Alternatively, pay the $1,286.00 charge or set up a payment plan by December 8, 2026.If you do nothing, you will be stopped from registering for spring classes.If you have questions about your enrollment status, please talk to your international student advisor. For issues regarding immigration status or legal matters, you should contact the school's international student office or a qualified attorney."
+      }
+    },
+    "axe": {
+      "01-bring": {
+        "light": [],
+        "dark": []
+      },
+      "02-seal": {
+        "light": [],
+        "dark": []
+      },
+      "03-ask": {
+        "light": [],
+        "dark": []
+      },
+      "04-offline": {
+        "light": [],
+        "dark": []
+      },
+      "05-unsupported": {
+        "light": [],
+        "dark": []
+      }
+    },
+    "downloadStates": [
+      "On-device model not downloadedDownload",
+      "Downloading model, 0%",
+      "Downloading model, 10%",
+      "Downloading model, 20%",
+      "Downloading model, 30%",
+      "Downloading model, 40%",
+      "Downloading model, 50%",
+      "Downloading model, 70%",
+      "Downloading model, 80%",
+      "Downloading model, 90%",
+      "Downloading model, 100%",
+      "On-device model ready"
+    ],
+    "downloadOk": true,
+    "keyboard": {
+      "reachedBarByTab": true,
+      "enterOpens": true,
+      "focusInPopover": true,
+      "peekShowsValue": true,
+      "tabToKeepVisible": true,
+      "keepVisibleWorks": true,
+      "focusOnBlackItOut": true,
+      "blackOutAgainWorks": true,
+      "spaceOpens": true,
+      "escapeCloses": true,
+      "focusReturned": true,
+      "pass": true
+    },
+    "selection": {
+      "value": "Potomac Service Center",
+      "detailsBefore": 11,
+      "summaryBefore": "11 details hidden (13 bars) on this device.",
+      "selected": true,
+      "occurrences": 2,
+      "allBarred": true,
+      "inOutbound": false,
+      "details": 12,
+      "summary": "12 details hidden (15 bars) on this device.",
+      "previewHidesValue": true,
+      "reformattedBlocked": true,
+      "requestsMade": 0,
+      "pass": true
+    },
+    "sticky": {
+      "outboundTop": 140,
+      "outboundBottom": 733,
+      "receiptTop": 1136,
+      "scrolled": 4276,
+      "position": "sticky",
+      "inView": true,
+      "clearOfReceipt": true,
+      "phonePosition": "static"
+    },
+    "referrals": {
+      "rfeExplain": 1,
+      "rfeFollowUp": 0,
+      "rentChecklistEs": 0,
+      "bursarDraft": 1
+    },
+    "unsupported": {
+      "chip": "No on-device model",
+      "bars": 12,
+      "note": "10 details hidden (12 bars) on this device. 12 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for, so black them out by hand."
+    },
+    "cloudRequests": [
+      {
+        "host": "firebasevertexai.googleapis.com",
+        "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
+        "bytes": 3353,
+        "identifiersInBody": []
+      },
+      {
+        "host": "firebasevertexai.googleapis.com",
+        "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
+        "bytes": 4638,
+        "identifiersInBody": []
+      },
+      {
+        "host": "firebasevertexai.googleapis.com",
+        "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
+        "bytes": 3065,
+        "identifiersInBody": []
+      },
+      {
+        "host": "firebasevertexai.googleapis.com",
+        "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
+        "bytes": 3471,
+        "identifiersInBody": []
+      }
+    ],
+    "leakedIdentifiers": [],
+    "consoleErrors": []
+  }
+}
