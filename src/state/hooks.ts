@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { checkDevice as realCheck, prepareDevice as realPrepare, type DeviceStatus } from '../ai/device'
 import { deviceSeam } from '../ai/deviceSeam'
+import { isStalled, type DownloadWatch } from './policy'
 
 // In development an e2e test may replace these with a test double (see deviceSeam.ts).
 const checkDevice = () => deviceSeam()?.check() ?? realCheck()
@@ -23,55 +24,65 @@ export function useOnline(): boolean {
 
 export interface DeviceHandle {
   status: DeviceStatus
-  /** Call from a click: starts the download if needed and warms the model. Resolves when it is usable. */
-  prepare: () => Promise<boolean>
+  /**
+   * Starts Chrome's model download. Only the reader's Download button calls
+   * this; nothing else in the app starts a download.
+   */
+  download: () => void
   refresh: () => void
 }
 
+const POLL_MS = 1000
+
 export function useDevice(): DeviceHandle {
   const [status, setStatus] = useState<DeviceStatus>({ state: 'checking' })
-  const preparing = useRef<Promise<boolean> | null>(null)
+  const watch = useRef<DownloadWatch | null>(null)
 
   const refresh = useCallback(() => {
-    void checkDevice().then(setStatus)
+    void checkDevice().then((s) => {
+      if (s.state === 'downloading' && !watch.current) watch.current = { since: Date.now(), progress: null }
+      setStatus(s)
+    })
   }, [])
 
   useEffect(refresh, [refresh])
 
-  // While Chrome downloads, availability is the source of truth for "done".
+  // While a download is in progress, availability says when it is done; the
+  // watch says when it has not moved for long enough to call it stalled.
   useEffect(() => {
     if (status.state !== 'downloading') return
     const t = window.setInterval(() => {
       void checkDevice().then((s) => {
-        if (s.state !== 'downloading') setStatus(s)
+        const w = watch.current
+        if (s.state === 'ready' || s.state === 'unavailable' || s.state === 'unsupported') {
+          watch.current = null
+          setStatus(s)
+        } else if (w && s.state === 'downloadable' && Date.now() - w.since > 3 * POLL_MS) {
+          // Chrome went back to "downloadable": the download failed.
+          watch.current = null
+          setStatus({ state: 'stalled', reason: 'error' })
+        } else if (w && isStalled(w, Date.now())) {
+          watch.current = null
+          setStatus({ state: 'stalled', reason: 'no-progress' })
+        }
       })
-    }, 3000)
+    }, POLL_MS)
     return () => window.clearInterval(t)
   }, [status.state])
 
-  const prepare = useCallback(async () => {
-    if (status.state === 'unsupported' || status.state === 'unavailable') return false
-    if (!preparing.current) {
-      preparing.current = (async () => {
-        try {
-          if (status.state === 'downloadable') setStatus({ state: 'downloading', progress: 0 })
-          await prepareDevice((p) => setStatus({ state: 'downloading', progress: p }))
-          const now = await checkDevice()
-          setStatus(now)
-          return now.state === 'ready' || now.state === 'downloading'
-        } catch {
-          const now = await checkDevice()
-          setStatus(now)
-          return now.state === 'ready'
-        } finally {
-          preparing.current = null
-        }
-      })()
-    }
-    return preparing.current
-  }, [status.state])
+  const download = useCallback(() => {
+    watch.current = { since: Date.now(), progress: null }
+    setStatus({ state: 'downloading', progress: null })
+    void prepareDevice((p) => {
+      if (watch.current) watch.current.progress = p
+      setStatus((prev) => (prev.state === 'downloading' ? { state: 'downloading', progress: p } : prev))
+    }).catch(() => {
+      watch.current = null
+      setStatus({ state: 'stalled', reason: 'error' })
+    })
+  }, [])
 
-  return { status, prepare, refresh }
+  return { status, download, refresh }
 }
 
 export type ThemeChoice = 'system' | 'light' | 'dark'

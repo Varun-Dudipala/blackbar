@@ -10,6 +10,8 @@ export function deviceLabel(s: DeviceStatus): { text: string; tone: 'ok' | 'wait
       return { text: 'On-device model not downloaded', tone: 'wait' }
     case 'downloading':
       return { text: s.progress === null ? 'Downloading model' : `Downloading model, ${Math.floor(s.progress * 100)}%`, tone: 'wait' }
+    case 'stalled':
+      return { text: s.reason === 'error' ? 'Model download failed' : 'Model download has not started', tone: 'off' }
     case 'unsupported':
     case 'unavailable':
       return { text: 'No on-device model', tone: 'off' }

@@ -31,6 +31,8 @@ export interface CallRecord {
   wordsSent?: number
   /** The prompt as sent, kept in memory so the receipt can re-check it. */
   sent?: string
+  /** True when the letter was sent sealed by pattern checks only. */
+  patternsOnly?: boolean
 }
 
 export interface Answer {
@@ -46,6 +48,8 @@ export interface Answer {
   ms?: number
   firstTokenMs?: number | null
   wordsSent?: number
+  /** True when the letter was sent before the on-device model had checked it. */
+  patternsOnly?: boolean
   failure?: CloudFailure
   leaks?: Leak[]
   partial?: boolean

@@ -109,6 +109,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online }: { a: Ans
               </button>
             )}
           </div>
+          {a.origin !== 'device' && !deviceOk && <p className="fine">An answer on this device needs Chrome's on-device model, which is not ready here.</p>}
           {a.failure.technical && (
             <details className="tech">
               <summary>Technical details</summary>
@@ -132,6 +133,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online }: { a: Ans
                 ? 'Development stand-in. No request was made.'
                 : `Sent ${(a.wordsSent ?? 0).toLocaleString()} words, including Blackbar's instructions. No hidden detail was included. Answered in the cloud (inferenceSource ${a.inferenceSource ?? 'unknown'}); first words after ${((a.firstTokenMs ?? 0) / 1000).toFixed(1)} s, finished after ${((a.ms ?? 0) / 1000).toFixed(1)} s.`}
             {a.partial && ' Only the first part of this long letter was read.'}
+            {a.patternsOnly && a.origin !== 'device' && ' The letter was sealed by pattern checks only; the on-device model had not checked it.'}
           </span>
           <button type="button" className="btn btn-quiet btn-small" onClick={() => void copy()}>
             {copied ? 'Copied' : reveal.show ? 'Copy with my details' : 'Copy with bars'}
@@ -183,7 +185,7 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
           </button>
         </p>
         {showInstructions && <pre className="instructions">{CLOUD_SYSTEM_INSTRUCTION}</pre>}
-        {patternOnly && <p className="notice notice-warn">Only pattern checks have run on this letter. Check that names are blacked out before you send it.</p>}
+        {patternOnly && !scanning && <p className="notice notice-warn">Only pattern checks have run on this letter. Check that names are blacked out before you send it.</p>}
       </section>
 
       <section className="asker" aria-labelledby="asker-h">
@@ -193,12 +195,14 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
         {!online && (
           <div className="notice notice-calm" role="status">
             <p>
-              <strong>This device is offline.</strong> Gemini needs a connection. Sealing, the summary and on-device answers still work.
+              <strong>This device is offline.</strong> Gemini needs a connection. Sealing still works{deviceOk ? ', and so do the summary and answers on this device' : ''}.
             </p>
-            {deviceOk && (
+            {deviceOk ? (
               <button type="button" className="btn btn-ink btn-small" onClick={onDevice} disabled={busy}>
                 Answer on this device instead
               </button>
+            ) : (
+              <p className="fine">An answer on this device needs Chrome's on-device model, which is not ready here.</p>
             )}
           </div>
         )}
@@ -216,7 +220,7 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
         </div>
         {scanning && (
           <p className="notice notice-calm" role="status">
-            Sending is paused until the on-device model finishes looking for names in the letter.
+            Sending is paused while the on-device model checks the letter. New bars may appear.
           </p>
         )}
         <div className="actions">

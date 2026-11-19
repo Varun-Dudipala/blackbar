@@ -14,7 +14,6 @@ interface Props {
   downloadNeeded: boolean
   samples: SampleLetter[]
   device: DeviceStatus
-  prepare: () => Promise<boolean>
   current: Letter | null
   onLetter: (letter: Letter) => void
   onCall: (call: Omit<CallRecord, 'id'>) => void
@@ -27,13 +26,21 @@ type Photo =
   | { status: 'review'; previewUrl: string; text: string; fixes: OcrFix[]; ms: number }
   | { status: 'error'; previewUrl?: string; message: string }
 
-export function BringStage({ downloadNeeded, samples, device, prepare, current, onLetter, onCall }: Props) {
+export function BringStage({ downloadNeeded, samples, device, current, onLetter, onCall }: Props) {
   const [mode, setMode] = useState<Mode>('samples')
   const [paste, setPaste] = useState('')
   const [photo, setPhoto] = useState<Photo | null>(null)
   const [dragging, setDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
-  const imagesOk = device.state === 'ready' ? device.images : device.state === 'downloadable' || device.state === 'downloading'
+  const imagesOk = device.state === 'ready' && device.images
+  const imageNote =
+    device.state === 'downloadable' || device.state === 'stalled'
+      ? 'Reading a photo needs Chrome\'s on-device model, which is not downloaded on this computer. Use Download at the top of the page (about 2.5 GB), or paste the text instead.'
+      : device.state === 'downloading'
+        ? 'Reading a photo needs Chrome\'s on-device model, which is still downloading. Paste the text now, or come back when the download finishes.'
+        : device.state === 'ready'
+          ? 'This browser\'s on-device model cannot read images. Paste the text instead.'
+          : 'Reading a photo needs Chrome\'s on-device model, which this browser does not have. Paste the text instead.'
 
   const readFile = async (file: File | undefined) => {
     if (!file) return
@@ -45,9 +52,8 @@ export function BringStage({ downloadNeeded, samples, device, prepare, current, 
       return
     }
     setPhoto({ status: 'reading', previewUrl: input.previewUrl })
-    const ready = await prepare()
-    if (!ready) {
-      setPhoto({ status: 'error', previewUrl: input.previewUrl, message: 'Reading a photo needs the on-device model, and this browser does not have it. Paste the text instead.' })
+    if (!imagesOk) {
+      setPhoto({ status: 'error', previewUrl: input.previewUrl, message: imageNote })
       return
     }
     try {
@@ -151,7 +157,7 @@ export function BringStage({ downloadNeeded, samples, device, prepare, current, 
               <button type="button" className="btn btn-ink" onClick={() => fileRef.current?.click()} disabled={!imagesOk}>
                 Choose an image
               </button>
-              {!imagesOk && <p className="fine warn">This browser's on-device model cannot read images. Paste the text instead.</p>}
+              {!imagesOk && device.state !== 'checking' && <p className="fine warn">{imageNote}</p>}
               <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={(e) => void readFile(e.target.files?.[0])} data-testid="file-input" />
             </div>
           )}
@@ -211,7 +217,7 @@ export function BringStage({ downloadNeeded, samples, device, prepare, current, 
       <aside className="how" aria-label="How Blackbar works">
         <p>
           <strong>How it works.</strong> Chrome's built-in model reads the letter on this computer and finds names and reference numbers. Pattern checks catch the standard formats, such as Social Security numbers and A-numbers. If you ask Gemini for help, it gets the sealed text only, and your real details are put back into the answer on this computer.
-          {downloadNeeded && ' The first time, Chrome downloads its model (about 2.5 GB, a few minutes).'}
+          {downloadNeeded && " Chrome's model is not downloaded on this computer, so only pattern checks run. Downloading it once (about 2.5 GB) adds name finding, photo reading and the summary."}
         </p>
       </aside>
     </div>

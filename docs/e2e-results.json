@@ -1,18 +1,18 @@
 {
   "device": {
-    "when": "2026-11-18T23:57:28.651Z",
+    "when": "2026-11-19T00:11:28.919Z",
     "chip": "On-device model ready",
     "samples": {
       "rfe": {
         "scan": {
           "status": "done",
-          "ms": 9806
+          "ms": 10918
         },
         "glance": {
           "status": "done",
-          "ms": 15163
+          "ms": 15667
         },
-        "wallMs": 15235,
+        "wallMs": 15747,
         "found": "9/9",
         "missed": [],
         "bars": 13,
@@ -32,18 +32,18 @@
       "rent": {
         "scan": {
           "status": "done",
-          "ms": 5058
+          "ms": 5155
         },
         "glance": {
           "status": "done",
-          "ms": 9404
+          "ms": 8894
         },
-        "wallMs": 9445,
+        "wallMs": 8934,
         "found": "7/7",
         "missed": [],
         "bars": 11,
         "modelBars": [],
-        "glanceType": "Past due rent notice",
+        "glanceType": "Past Due Notice",
         "glanceError": null,
         "expectedDeadline": "2026-11-23",
         "glanceDeadlines": [
@@ -56,13 +56,13 @@
       "bursar": {
         "scan": {
           "status": "done",
-          "ms": 4651
+          "ms": 3032
         },
         "glance": {
           "status": "done",
-          "ms": 10211
+          "ms": 9296
         },
-        "wallMs": 10255,
+        "wallMs": 9337,
         "found": "5/5",
         "missed": [],
         "bars": 10,
@@ -86,13 +86,13 @@
         "rfe": {
           "scan": {
             "status": "done",
-            "ms": 5051
+            "ms": 5560
           },
           "glance": {
             "status": "done",
-            "ms": 9903
+            "ms": 10411
           },
-          "wallMs": 9947,
+          "wallMs": 10466,
           "found": "9/9",
           "missed": [],
           "glanceDeadlines": [
@@ -104,13 +104,13 @@
         "rent": {
           "scan": {
             "status": "done",
-            "ms": 4441
+            "ms": 5459
           },
           "glance": {
             "status": "done",
-            "ms": 9496
+            "ms": 12942
           },
-          "wallMs": 9538,
+          "wallMs": 12981,
           "found": "7/7",
           "missed": [],
           "glanceDeadlines": [
@@ -122,13 +122,13 @@
         "bursar": {
           "scan": {
             "status": "done",
-            "ms": 4549
+            "ms": 3838
           },
           "glance": {
             "status": "done",
-            "ms": 9807
+            "ms": 9193
           },
-          "wallMs": 9848,
+          "wallMs": 9283,
           "found": "5/5",
           "missed": [],
           "glanceDeadlines": [
@@ -144,37 +144,37 @@
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "5.0 s"
+          "time": "5.5 s"
         },
         {
           "side": "on_device",
           "label": "At a glance",
-          "time": "9.9 s"
+          "time": "10.4 s"
         },
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "4.4 s"
+          "time": "5.5 s"
         },
         {
           "side": "on_device",
           "label": "At a glance",
-          "time": "9.5 s"
+          "time": "12.9 s"
         },
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "4.5 s"
+          "time": "3.8 s"
         },
         {
           "side": "on_device",
           "label": "At a glance",
-          "time": "9.8 s"
+          "time": "9.1 s"
         }
       ]
     },
     "image": {
-      "transcribeMs": 17898,
+      "transcribeMs": 17881,
       "idsVerbatimInTranscript": "9/9",
       "missingFromTranscript": [],
       "fixes": [],
@@ -191,32 +191,32 @@
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "9.7 s"
+        "time": "10.9 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "15.1 s"
+        "time": "15.7 s"
       },
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "5.0 s"
+        "time": "5.1 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "9.4 s"
+        "time": "8.9 s"
       },
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "4.6 s"
+        "time": "3.0 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "10.1 s"
+        "time": "9.3 s"
       }
     ],
     "allOnDevice": true,
@@ -226,58 +226,58 @@
   },
   "cloud": {
     "mockCloud": false,
-    "when": "2026-11-19T00:02:43.244Z",
+    "when": "2026-11-19T00:13:07.754Z",
     "answers": {
       "rfeExplain": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1499,
-        "firstTokenMs": 841,
-        "chars": 1281,
-        "placeholders": 4,
+        "ms": 1385,
+        "firstTokenMs": 834,
+        "chars": 1184,
+        "placeholders": 3,
         "error": null,
-        "text": "What This Letter Is and Who Sent ItThis is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for Optional Practical Training (OPT) for NAME 1 (A-Number: A NUMBER 1).Why You Received ItUSCIS is reviewing your application for employment authorization and has determined that the currently submitted evidence is not sufficient to establish your eligibility.What It Asks ForYou must submit:A copy of Form I-20 endorsed by your Designated School Official within the last 30 days, showing the post-completion OPT recommendation.A copy of your passport biographic page.Two passport-style photographs with your name and A NUMBER 1 written lightly on the back.A copy of your marriage certificate listing your spouse, NAME 2.You must include this notice with your response and mail everything to the address listed on the letter.DeadlineYour response must be received by December 15, 2026.What Happens If You Do NothingIf USCIS does not receive the requested evidence by the deadline, they will decide your application based on the existing record, and it may be denied.Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+        "text": "What this letter is and who sent itThis is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for NAME 1.Why you received itUSCIS is reviewing your application for optional practical training and has determined that the current evidence is not sufficient to establish your eligibility.What it asks forYou must submit the following items:A copy of your Form I-20 endorsed by your Designated School Official within the last 30 days, showing the post-completion OPT recommendation.A copy of the biographic page of your passport.Two passport-style photographs with your name and A-Number (A NUMBER 1) written lightly on the back.A copy of your marriage certificate listing your spouse, NAME 2.This notice, included with your response.DeadlineYour response must be received by December 15, 2026.What happens if you do nothingIf USCIS does not receive the requested evidence by the deadline, they will decide your application based on the existing record, and it may be denied.Check anything about your immigration status with your school's international student office or a qualified immigration attorney."
       },
       "rfeFollowUp": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1004,
-        "firstTokenMs": 780,
-        "chars": 401,
+        "ms": 932,
+        "firstTokenMs": 792,
+        "chars": 278,
         "placeholders": 0,
         "error": null,
-        "text": "The letter states: \"Send this notice with your response to the address above.\"However, the letter does not explicitly state whether the two passport-style photographs can be uploaded online or if they must be mailed. It only lists the physical preparation required (\"with your name and A-Number written lightly on the back\") and tells you to send the notice with your response to the address provided.",
+        "text": "The letter does not state whether the two passport-style photographs can be uploaded or if they must be mailed.The letter instructs you to send this notice with your response to the address listed at the top, but it does not specify the submission method for the physical items.",
         "questionSent": "Does NAME 1 have to mail the two passport photos, or can they be uploaded?"
       },
       "rentChecklistEs": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1667,
-        "firstTokenMs": 785,
-        "chars": 1059,
+        "ms": 12894,
+        "firstTokenMs": 768,
+        "chars": 1099,
         "placeholders": 6,
         "error": null,
-        "text": "La fecha límite para realizar el pago o contactar a la oficina es el November 23, 2026.Revisar el contrato de arrendamiento en la sección 4 para verificar los detalles sobre la renta de $1,450.00 y el cargo por pago tardío de $75.00 (referencia ACCOUNT 2).Reunir los datos de su cuenta, incluyendo su Tenant ID ACCOUNT 1, para realizar el pago total de $1,525.00.Realizar el pago antes del November 23, 2026 mediante el portal de residentes, con un giro postal (money order) en la oficina, o con un cheque pagadero a Maple Court Apartments.Contactar a la oficina en PHONE 1 antes de la fecha límite si tiene problemas para pagar y desea analizar un plan de pagos.Informar a la administración si sus datos de contacto han cambiado, ya que tienen registrado el teléfono PHONE 2 y el correo EMAIL 1.Antes de enviar:Asegurarse de que el monto total de $1,525.00 esté cubierto.Escribir su Tenant ID ACCOUNT 1 en el cheque si elige esa forma de pago.Verificar que el pago se efectúe a más tardar el November 23, 2026 para evitar una notificación formal de desalojo."
+        "text": "La fecha límite para realizar el pago completo es el 23 de noviembre de 2026.Revisar el contrato de arrendamiento en la sección 4 para verificar los detalles de la renta de $1,450.00 y el cargo por mora de $1,525.00 (referencia de libro mayor ACCOUNT 2).Reunir los datos de su cuenta de residente para acceder al portal o preparar un giro postal (money order) u cheque pagadero a Maple Court Apartments con su Tenant ID ACCOUNT 1.Enviar el pago total de $1,525.00 a través del portal de residentes, en la oficina con un giro postal o mediante cheque antes del 23 de noviembre de 2026.Comunicarse con la oficina antes del plazo al teléfono PHONE 1 o por correo electrónico si tiene problemas de pago para hablar sobre un plan de pagos.Informar a la administración si su número de teléfono PHONE 2 o su correo electrónico EMAIL 1 han cambiado.Antes de enviar:Verifique que el monto total incluya la renta y el cargo por mora ($1,525.00).Asegúrese de incluir su Tenant ID ACCOUNT 1 si paga con cheque.Confirme que el pago se realice a nombre de Maple Court Apartments antes del 23 de noviembre de 2026."
       },
       "bursarDraft": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1217,
-        "firstTokenMs": 717,
-        "chars": 903,
+        "ms": 1118,
+        "firstTokenMs": 662,
+        "chars": 911,
         "placeholders": 6,
         "error": null,
-        "text": "Subject: Registration Hold / Health Insurance - NAME 1 (Student ID: ACCOUNT 1)Dear Office of Student Accounts and Student Health Insurance,I am writing regarding the registration hold and the $1,286.00 spring term charge on my student account (Student ID: ACCOUNT 1, SEVIS ID: SEVIS 1).I am submitting the online waiver form using my current insurance policy (Member ID: ACCOUNT 2). Along with the form, I am attaching [describe the document you are attaching, such as my insurance card and policy certificate].Could you please confirm whether my waiver submission is complete, and approximately how long it typically takes to process and remove the registration hold once the waiver is submitted?Thank you for your assistance.Sincerely,NAME 1Note to the reader: You should check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+        "text": "Subject: Registration hold / Student health insurance - NAME 1 (Student ID: ACCOUNT 1)Dear Office of Student Accounts,I am writing regarding the registration hold and the spring term health insurance charge of $1,286.00 on my student account (Student ID: ACCOUNT 1, SEVIS ID: SEVIS 1).To resolve this hold, I am submitting the online waiver form using my current insurance information under Member ID: ACCOUNT 2. I have attached [describe the document you are attaching] as requested with my policy details.Could you please confirm if my waiver form and attached documents have been received successfully, and how long the review process typically takes before the registration hold is lifted from my account?Thank you for your assistance.Sincerely,NAME 1Note to the reader: Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
       },
       "offlineOnDevice": {
         "status": "done",
         "inferenceSource": "on_device",
-        "ms": 4505,
+        "ms": 4467,
         "firstTokenMs": null,
-        "chars": 789,
+        "chars": 657,
         "placeholders": 0,
         "error": null,
-        "text": "This letter is from Example State University's Student Accounts office and informs you about a charge for student health insurance that is stopping you from registering for spring classes.Here is what you need to do:Have your insurance waiver approved: If you have existing health insurance, submit an online waiver form with your policy details by November 30, 2026.Pay the charge: Alternatively, pay the $1,286.00 charge or set up a payment plan by December 8, 2026.If you do nothing, you will be stopped from registering for spring classes.If you have questions about your enrollment status, please talk to your international student advisor. For issues regarding immigration status or legal matters, you should contact the school's international student office or a qualified attorney."
+        "text": "This letter is from Example State University and is about a charge for your student health insurance.To remove a hold and register for classes, you must choose one of the following:Get a waiver: If you already have health insurance, send the university an online form with your insurance details by November 30, 2026.Pay the charge: If you do not have a waiver, pay the $1,286.00 by December 8, 2026, or set up a payment plan.If you do not take action, you will not be able to register for spring classes.If you have questions about your immigration status or this situation, please contact the school's international student office or a qualified attorney."
       }
     },
     "axe": {
@@ -302,21 +302,57 @@
         "dark": []
       }
     },
-    "downloadStates": [
-      "On-device model not downloadedDownload",
-      "Downloading model, 0%",
-      "Downloading model, 10%",
-      "Downloading model, 20%",
-      "Downloading model, 30%",
-      "Downloading model, 40%",
-      "Downloading model, 50%",
-      "Downloading model, 70%",
-      "Downloading model, 80%",
-      "Downloading model, 90%",
-      "Downloading model, 100%",
-      "On-device model ready"
-    ],
-    "downloadOk": true,
+    "notDownloaded": {
+      "chip": "On-device model not downloadedDownload",
+      "scan": "idle",
+      "scanLine": "9 details hidden (10 bars) on this device. 10 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for. Chrome's on-device model can also find names, read photos and write the summary. Download it (about 2.5 GB)",
+      "inlineOffer": true,
+      "downloadsStarted": 0,
+      "sendEnabled": true,
+      "answer": {
+        "status": "done",
+        "inferenceSource": "in_cloud",
+        "ms": 1774,
+        "firstTokenMs": 1041,
+        "chars": 1198,
+        "placeholders": 3,
+        "error": null,
+        "text": "About the LetterThis letter is a notice from the Office of Student Accounts and Student Health Insurance at Example State University, sent to NAME 1.Why You Received ItThe university automatically enrolls international students in its Student Health Insurance Plan. A charge of $1,286.00 for the spri"
+      },
+      "answerNotesPatternsOnly": true,
+      "downloadsStartedAfterSend": 0,
+      "pass": true
+    },
+    "download": {
+      "before": "idle",
+      "states": [
+        "On-device model not downloadedDownload",
+        "Downloading model, 0%",
+        "Downloading model, 10%",
+        "Downloading model, 20%",
+        "Downloading model, 30%",
+        "Downloading model, 40%",
+        "Downloading model, 50%",
+        "Downloading model, 70%",
+        "Downloading model, 80%",
+        "Downloading model, 90%",
+        "Downloading model, 100%",
+        "On-device model ready"
+      ],
+      "rileyBarredBefore": false,
+      "rileyBarredAfter": true,
+      "summary": "11 details hidden (13 bars) on this device.",
+      "downloadsStarted": 1,
+      "pass": true
+    },
+    "stalled": {
+      "stalledAfterMs": 20012,
+      "chip": "Model download has not startedTry again",
+      "scanLine": "9 details hidden (10 bars) on this device. 10 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for. Chrome has not started the model download. The usual cause is free disk space: Chrome needs about 22 GB free to install the model. Try the download again",
+      "sendEnabled": true,
+      "retryOffered": true,
+      "pass": true
+    },
     "keyboard": {
       "reachedBarByTab": true,
       "enterOpens": true,
@@ -349,8 +385,8 @@
     "sticky": {
       "outboundTop": 140,
       "outboundBottom": 733,
-      "receiptTop": 1136,
-      "scrolled": 4276,
+      "receiptTop": 1137,
+      "scrolled": 4190,
       "position": "sticky",
       "inView": true,
       "clearOfReceipt": true,
@@ -365,9 +401,15 @@
     "unsupported": {
       "chip": "No on-device model",
       "bars": 12,
-      "note": "10 details hidden (12 bars) on this device. 12 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for, so black them out by hand."
+      "note": "10 details hidden (12 bars) on this device. 12 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for. Black them out by hand before you send anything."
     },
     "cloudRequests": [
+      {
+        "host": "firebasevertexai.googleapis.com",
+        "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
+        "bytes": 3251,
+        "identifiersInBody": []
+      },
       {
         "host": "firebasevertexai.googleapis.com",
         "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
@@ -377,7 +419,7 @@
       {
         "host": "firebasevertexai.googleapis.com",
         "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
-        "bytes": 4638,
+        "bytes": 4540,
         "identifiersInBody": []
       },
       {

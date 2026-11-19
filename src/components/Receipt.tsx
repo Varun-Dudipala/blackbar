@@ -49,7 +49,10 @@ export function Receipt({ session, sealedCount, barCount: bars, identifiersSent,
             <tbody>
               {session.calls.map((c) => (
                 <tr key={c.id} data-side={c.side}>
-                  <td>{c.label}</td>
+                  <td>
+                    {c.label}
+                    {c.patternsOnly && c.side === 'in_cloud' && <span className="receipt-note"> (pattern-check sealing only)</span>}
+                  </td>
                   <td>{SIDE[c.side]}</td>
                   <td className="num">{c.ms === undefined ? '—' : `${(c.ms / 1000).toFixed(1)} s`}</td>
                 </tr>

@@ -1,7 +1,7 @@
 // Orchestrates one session: sealing and glance on-device, cloud requests
 // through the leak gate, and the privacy receipt.
 
-import { useCallback, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { detect } from '../seal/detectors'
 import { leakCheck, sanitizeInput, seal, type Sealed } from '../seal/redact'
 import { maskValuesKeepingPlaceholders, sealQuestion } from '../seal/question'
@@ -44,10 +44,17 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
     scanRef.current = session.scan.status
   }, [sealed, session.answers, session.scan.status])
 
+  const deviceReady = device.status.state === 'ready'
+  const readyRef = useRef(deviceReady)
+  useLayoutEffect(() => {
+    readyRef.current = deviceReady
+  }, [deviceReady])
+
+  // Runs the on-device scan and glance, but only if the model is already
+  // downloaded. It never starts a download: that is the reader's choice.
   const runOnDevice = useCallback(
     async (text: string) => {
-      const ready = await device.prepare()
-      if (!ready || letterRef.current !== text) return
+      if (!readyRef.current || letterRef.current !== text) return
       dispatch({ type: 'scan', task: { status: 'running' } })
       dispatch({ type: 'glance', task: { status: 'running' } })
       const scan = findSensitive(text)
@@ -74,17 +81,22 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
         })
       await Promise.all([scan, glance])
     },
-    [device],
+    [],
   )
+
+  // When the model becomes ready (after a download), check the current letter.
+  useEffect(() => {
+    if (deviceReady && session.letter && session.scan.status === 'idle') void runOnDevice(session.letter.text)
+  }, [deviceReady, session.letter, session.scan.status, runOnDevice])
 
   const startLetter = useCallback(
     (letter: Letter) => {
       const text = sanitizeInput(letter.text.replace(/\r\n/g, '\n')).trim()
       letterRef.current = text
+      // Pattern checks run at once. The effect above starts the model check when it can.
       dispatch({ type: 'letter', letter: { ...letter, text }, spans: detect(text) })
-      void runOnDevice(text)
     },
-    [runOnDevice],
+    [],
   )
 
   const rescan = useCallback(() => {
@@ -115,7 +127,9 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
         referral: referralFor(task, current.sealedText, isFirstAnswer, questionSent),
       })
       const id = newId()
-      dispatch({ type: 'answer-start', answer: { id, task, language, questionSent, origin: 'cloud' } })
+      // Record whether the on-device model had checked the letter when it was sent.
+      const patternsOnly = scanRef.current !== 'done'
+      dispatch({ type: 'answer-start', answer: { id, task, language, questionSent, origin: 'cloud', patternsOnly } })
       try {
         const sender = await getCloudSender()
         const result = await runCloud(payload, entries, sender, (text) => dispatch({ type: 'answer-text', id, text }))
@@ -127,7 +141,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
           id,
           patch: { text: result.text, origin: standIn ? 'mock' : 'cloud', inferenceSource: result.inferenceSource, ms: result.ms, firstTokenMs: result.firstTokenMs, wordsSent: words },
         })
-        dispatch({ type: 'call', call: { label: TASK_TITLE[task], side: standIn ? 'mock' : result.inferenceSource === 'in_cloud' ? 'in_cloud' : 'failed', ms: result.ms, wordsSent: words, sent: standIn ? undefined : outboundText(payload) } })
+        dispatch({ type: 'call', call: { label: TASK_TITLE[task], side: standIn ? 'mock' : result.inferenceSource === 'in_cloud' ? 'in_cloud' : 'failed', ms: result.ms, wordsSent: words, sent: standIn ? undefined : outboundText(payload), patternsOnly } })
       } catch (e) {
         if (e instanceof LeakBlockedError) {
           dispatch({ type: 'answer-end', id, patch: { status: 'blocked', leaks: e.leaks } })
@@ -152,14 +166,21 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
   const answerOnDevice = useCallback(async () => {
     const text = letterRef.current
     if (!text) return
-    const ready = await device.prepare()
     const id = newId()
     dispatch({ type: 'answer-start', answer: { id, task: 'device', language: 'en', origin: 'device' } })
-    if (!ready) {
+    if (!readyRef.current) {
       dispatch({
         type: 'answer-end',
         id,
-        patch: { status: 'error', failure: { kind: 'failed', title: 'The on-device model is not available here', detail: 'This browser cannot run the built-in model, so an on-device answer is not possible.', technical: '' } },
+        patch: {
+          status: 'error',
+          failure: {
+            kind: 'failed',
+            title: 'Chrome\'s on-device model is not ready',
+            detail: 'An answer on this device needs Chrome\'s built-in model to be downloaded first. Use Download at the top of the page if it is offered.',
+            technical: '',
+          },
+        },
       })
       return
     }
@@ -171,7 +192,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
       dispatch({ type: 'answer-end', id, patch: { status: 'error', failure: { kind: 'failed', title: 'The on-device answer did not finish', detail: message(e), technical: message(e) } } })
       dispatch({ type: 'call', call: { label: 'Explain on this device', side: 'failed' } })
     }
-  }, [device])
+  }, [])
 
   const identifiersSent = useMemo(() => {
     const entries = sealed?.entries ?? []

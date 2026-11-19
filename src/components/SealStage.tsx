@@ -21,6 +21,7 @@ interface Props {
   device: DeviceStatus
   dispatch: (a: Action) => void
   onRescan: () => void
+  onDownload: () => void
 }
 
 function OnDeviceTag() {
@@ -36,14 +37,16 @@ function download(name: string, body: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-function ScanLine({ session, details, device, onRescan }: { session: Session; details: number; device: DeviceStatus; onRescan: () => void }) {
+function ScanLine({ session, details, device, onRescan, onDownload }: { session: Session; details: number; device: DeviceStatus; onRescan: () => void; onDownload: () => void }) {
   const counts = { pattern: 0, model: 0, user: 0 }
   for (const s of session.spans) counts[s.source]++
   const bits = [`${barCount(counts.pattern)} from pattern checks`]
   if (counts.model) bits.push(`${barCount(counts.model)} from the on-device model`)
   if (counts.user) bits.push(`${barCount(counts.user)} added by you`)
   let status: React.ReactNode
-  if (session.scan.status === 'running') status = <span className="scan-run">The on-device model is reading the letter for names and other reference numbers.</span>
+  const notChecked = 'Only pattern checks ran. Names and unusual reference numbers were not looked for.'
+  if (session.scan.status === 'running')
+    status = <span className="scan-run">The on-device model is checking the letter for names and other reference numbers. New bars may appear, and sending waits until it finishes.</span>
   else if (session.scan.status === 'done') status = <span>The on-device model has finished{session.scan.value.chunks > 1 ? ` (it read the letter in ${session.scan.value.chunks} parts)` : ''}. Check the bars against your letter before you send anything.</span>
   else if (session.scan.status === 'error')
     status = (
@@ -55,8 +58,36 @@ function ScanLine({ session, details, device, onRescan }: { session: Session; de
       </span>
     )
   else if (device.state === 'unsupported' || device.state === 'unavailable')
-    status = <span className="warn">Only pattern checks ran. Names and unusual reference numbers were not looked for, so black them out by hand.</span>
-  else status = <span>Waiting for the on-device model to load.</span>
+    status = <span className="warn">{notChecked} Black them out by hand before you send anything.</span>
+  else if (device.state === 'downloadable')
+    status = (
+      <span className="warn">
+        {notChecked} Chrome's on-device model can also find names, read photos and write the summary.{' '}
+        <button type="button" className="link" onClick={onDownload} data-testid="inline-download">
+          Download it (about 2.5 GB)
+        </button>
+      </span>
+    )
+  else if (device.state === 'downloading')
+    status = (
+      <span>
+        {notChecked} Chrome is downloading its model{device.progress !== null ? ` (${Math.floor(device.progress * 100)}%)` : ''}. When it finishes, the model checks this letter and new bars may appear. You can send before then.
+      </span>
+    )
+  else if (device.state === 'stalled')
+    status = (
+      <span className="warn">
+        {notChecked}{' '}
+        {device.reason === 'error'
+          ? "Chrome's model download failed."
+          : 'Chrome has not started the model download.'}{' '}
+        The usual cause is free disk space: Chrome needs about 22 GB free to install the model.{' '}
+        <button type="button" className="link" onClick={onDownload} data-testid="inline-download">
+          Try the download again
+        </button>
+      </span>
+    )
+  else status = <span>Checking whether Chrome's on-device model is available.</span>
   return (
     <div className="scanline" role="status" aria-live="polite" data-scan={session.scan.status}>
       <strong data-testid="hidden-summary">{hiddenSummary(details, session.spans.length)} on this device.</strong> <span className="muted">{bits.join(', ')}.</span>
@@ -138,7 +169,15 @@ function GlanceCard({ session, sealed, device }: { session: Session; sealed: Sea
     return (
       <aside className="glance is-empty" aria-label="At a glance">
         <h3>At a glance</h3>
-        <p className="muted">{off ? 'The summary needs the on-device model, which this browser does not have.' : 'Waiting for the on-device model to load.'}</p>
+        <p className="muted">
+          {off
+            ? 'The summary needs an on-device model, which this browser does not have.'
+            : device.state === 'downloading'
+              ? "The summary appears here when Chrome finishes downloading its model."
+              : device.state === 'ready' || device.state === 'checking'
+                ? 'Waiting for the on-device model.'
+                : "The summary needs Chrome's on-device model, which is not downloaded on this computer."}
+        </p>
       </aside>
     )
   }
@@ -231,13 +270,13 @@ function GlanceCard({ session, sealed, device }: { session: Session; sealed: Sea
   )
 }
 
-export function SealStage({ session, sealed, device, dispatch, onRescan }: Props) {
+export function SealStage({ session, sealed, device, dispatch, onRescan, onDownload }: Props) {
   const letter = session.letter
   if (!letter) return null
   return (
     <div className="seal-grid">
       <div className="seal-main">
-        <ScanLine session={session} details={sealed.entries.length} device={device} onRescan={onRescan} />
+        <ScanLine session={session} details={sealed.entries.length} device={device} onRescan={onRescan} onDownload={onDownload} />
         <article className="paper" aria-label={`${letter.title}, sealed`}>
           <header className="paper-head">
             <span>{letter.title}</span>

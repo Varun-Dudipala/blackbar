@@ -8,6 +8,7 @@ import { SealStage } from './components/SealStage'
 import { AskStage } from './components/AskStage'
 import { Receipt } from './components/Receipt'
 import { hiddenSummary } from './seal/stats'
+import { policy } from './state/policy'
 
 function Stage({ id, n, title, lede, children }: { id: string; n: number; title: string; lede: string; children: React.ReactNode }) {
   return (
@@ -45,8 +46,9 @@ export default function App() {
     lastLetter.current = text
   }, [session.letter])
 
-  const deviceOk = device.status.state === 'ready' || device.status.state === 'downloading' || device.status.state === 'downloadable'
-  const patternOnly = !!session.letter && (session.scan.status === 'error' || device.status.state === 'unsupported' || device.status.state === 'unavailable')
+  const rules = policy(device.status.state, session.scan.status)
+  const deviceOk = rules.modelRuns
+  const patternOnly = !!session.letter && rules.patternsOnly
   const asked = session.answers.length > 0
 
   const stages: { id: string; n: number; title: string; note: string; state: StageState }[] = [
@@ -84,7 +86,7 @@ export default function App() {
             <span className="tagline">Reads official letters on this computer and hides your identifiers before anything is sent.</span>
           </div>
           <div className="top-tools">
-            <DeviceChip status={device.status} onPrepare={() => void device.prepare()} />
+            <DeviceChip status={device.status} onPrepare={device.download} />
             <ThemeSwitch theme={theme} onChange={setTheme} />
           </div>
         </div>
@@ -103,12 +105,12 @@ export default function App() {
         <StageRail stages={stages} />
 
         <Stage id="bring" n={1} title="Bring a letter" lede="Paste the text, add a photo or scan, or open a sample. Nothing is read until you choose one.">
-          <BringStage downloadNeeded={device.status.state === 'downloadable'} samples={samples} device={device.status} prepare={device.prepare} current={session.letter} onLetter={bb.startLetter} onCall={(call) => bb.dispatch({ type: 'call', call })} />
+          <BringStage downloadNeeded={device.status.state === 'downloadable'} samples={samples} device={device.status} current={session.letter} onLetter={bb.startLetter} onCall={(call) => bb.dispatch({ type: 'call', call })} />
         </Stage>
 
         <Stage id="seal" n={2} title="Seal" lede="Each identifier found on this device is under a black bar. Press a bar to check it, or select text to add one. Nothing has been sent.">
           {session.letter && sealed ? (
-            <SealStage session={session} sealed={sealed} device={device.status} dispatch={bb.dispatch} onRescan={bb.rescan} />
+            <SealStage session={session} sealed={sealed} device={device.status} dispatch={bb.dispatch} onRescan={bb.rescan} onDownload={device.download} />
           ) : (
             <Empty>
               <p>No letter yet.</p>
@@ -124,7 +126,7 @@ export default function App() {
               online={online}
               deviceOk={deviceOk}
               patternOnly={patternOnly}
-              scanning={session.scan.status === 'running' || (session.scan.status === 'idle' && device.status.state !== 'unsupported' && device.status.state !== 'unavailable')}
+              scanning={rules.sendPaused}
               onAsk={(task, lang) => void bb.ask(task, lang)}
               onFollowUp={(q, lang) => void bb.followUp(q, lang)}
               onDevice={() => void bb.answerOnDevice()}

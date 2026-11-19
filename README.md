@@ -17,7 +17,7 @@ Every call goes through the Firebase AI Logic SDK (`firebase/ai`). There is one 
 | Read a photo or scan | `ONLY_ON_DEVICE`, PNG or JPEG input | Chrome built-in model | The image contains every identifier. |
 | Explain on this device | `ONLY_ON_DEVICE`, streamed | Chrome built-in model | Offered when the device is offline or a cloud request fails. It may read the full letter because nothing leaves the device. |
 | Explain it plainly, What should I do next?, Draft a reply, follow-up questions | `ONLY_IN_CLOUD`, streamed, `gemini-3.5-flash-lite` | Gemini through Firebase AI Logic, with App Check | Longer answers in ten languages. It receives sealed text only, after the leak gate. |
-| Model download and warm-up | `initializeDeviceModel()` on a click | Chrome | Chrome requires a user gesture to start the download. |
+| Model download | `initializeDeviceModel()` | Chrome | Called only from the Download button. Opening a letter never starts a download. |
 
 Each response's `inferenceSource` is shown in the privacy receipt. On-device results whose `inferenceSource` is not `on_device` are discarded.
 
@@ -25,7 +25,7 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 
 - **Sealing.** Pattern checks (`src/seal/detectors.ts`) find structured identifiers: SSNs, A-numbers, SEVIS IDs, USCIS receipt numbers, labelled passport, account, case, student and member numbers, phone numbers, email addresses, street addresses, ZIP codes, labelled dates of birth, and names after "Dear" or a label such as "Beneficiary:". The on-device model adds what patterns miss. A value the model returns is used only if it appears in the letter exactly as written. Dates other than a labelled date of birth are never barred, so deadlines stay readable.
 - **Placeholders.** Each hidden value becomes a placeholder such as `⟦NAME_1⟧`. The same value always gets the same placeholder, and every place it appears is barred. The table from placeholder to value stays in the tab's memory.
-- **What is sent.** The "What leaves this device" panel shows the exact sealed text before anything is sent. Follow-up questions are sealed the same way, and the panel shows the question as it will be sent. Nothing is sent while the on-device model is still looking for names.
+- **What is sent.** The "What leaves this device" panel shows the exact sealed text before anything is sent. Follow-up questions are sealed the same way, and the panel shows the question as it will be sent. Sending pauses only while the on-device model is checking the letter. If a letter is sent before the model has checked it (because the model is not downloaded, or is still downloading), the answer and the receipt say it was sealed by pattern checks only.
 - **Leak gate.** Before every cloud request, `leakCheck` (`src/seal/redact.ts`) searches the whole payload (instructions, letter, question and earlier answer) for every hidden value. It ignores letter case and finds copies with the spacing or punctuation removed. If it finds one, the request is not made and the reader sees which detail it was.
 - **Restoring.** Answers arrive with placeholders. "Show my details" puts the real values back in the browser.
 - **Storage.** There are no accounts, no analytics and no server of our own. The letter lives in the tab's memory until the tab is closed or "Forget this letter" is pressed. The only thing written to the browser is the light or dark setting. The service worker caches the app's own files, never letter text.
@@ -50,14 +50,17 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 - a follow-up containing a reformatted hidden value is blocked with no request made;
 - selecting text and blacking it out bars every occurrence and updates the sealed text and the counts;
 - keyboard-only use of the bars: Tab, Enter, Space, Peek, Keep visible, Black it out again, Escape, and focus returning to the bar;
-- the download states (not downloaded, downloading NN%, ready), shown through a development-only test double;
+- with a development-only test double for Chrome's model state:
+  - not downloaded: opening a letter runs pattern checks at once, starts no download, offers the download, and a real Gemini request goes through and is marked as pattern-check sealing only;
+  - Download pressed: progress to 100%, then the on-device model checks the letter and adds a bar for a name only it can find;
+  - stalled at 0%: after 20 seconds the page says Chrome has not started the download and names disk space as the usual cause, offers a retry, and sending stays possible;
 - an axe-core accessibility scan of each state in light and dark;
 - the "What leaves this device" panel stays in view beside long answers at desktop width.
 
 `npm test` runs the unit tests: detectors, sealing, leak gate, question sealing, model-string mapping, deadlines, calendar files, chunking, prompts and the session state.
 
 **Not verified:**
-- a first-time model download in Chrome (the model was already installed, so the download states use a test double);
+- a first-time model download in Chrome, and Chrome declining a download for lack of disk space (the model was already installed, so these states use a test double);
 - the reCAPTCHA Enterprise App Check provider used by the hosted build;
 - Windows, Linux and ChromeOS;
 - photos of real paper letters (only a rendered image was tested);
@@ -69,7 +72,9 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 
 On-device features need desktop Chrome 139 or later with Chrome's built-in model. That means Windows 10 or 11, macOS 13 or later, Linux, or a Chromebook Plus, with about 22 GB of free disk space and either a GPU with more than 4 GB of memory or 16 GB of RAM and four CPU cores. The first download is about 2.5 GB.
 
-Without the on-device model, Blackbar still works with pattern checks only. The page says so, names are not found automatically, and the reader can black out anything by hand. Photos cannot be read, and there is no "At a glance" summary.
+Blackbar never downloads the model on its own. When Chrome reports the model as not downloaded, the Seal stage says that only pattern checks ran and offers a Download button. Chrome will not start the download with less than about 22 GB free; if the download shows no progress for 20 seconds, the page says so and offers a retry. When a download finishes, the model checks the letter that is open.
+
+Without the on-device model, Blackbar still works with pattern checks only. Sending to Gemini is not blocked, names are not found automatically, and the reader can black out anything by hand. Photos cannot be read, and there is no "At a glance" summary.
 
 ## Setup and run
 

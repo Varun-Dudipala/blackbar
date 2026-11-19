@@ -41,6 +41,8 @@ export type DeviceStatus =
   | { state: 'unavailable'; reason: string }
   | { state: 'downloadable' }
   | { state: 'downloading'; progress: number | null }
+  /** Chrome has not made progress on a download, or the download failed. */
+  | { state: 'stalled'; reason: 'no-progress' | 'error' }
   | { state: 'ready'; images: boolean }
 
 const languageModel = (): LanguageModelStatic | undefined =>
@@ -81,9 +83,13 @@ let warmModel: GenerativeModel | null = null
 // The SDK keeps each model's last session open so Chrome keeps the model loaded.
 const keepAlive: { model: GenerativeModel | null } = { model: null }
 
-/** Starts (or joins) the model download. Chrome requires this to run from a click. */
+/**
+ * Starts the model download. Called only from the reader's Download button
+ * (Chrome requires a click). A fresh model instance each time, so a retry after
+ * a stalled download asks Chrome again instead of joining the stuck request.
+ */
 export async function prepareDevice(onProgress: (fraction: number) => void): Promise<void> {
-  if (!warmModel) warmModel = getGenerativeModel(await getDeviceAi(), ON_DEVICE(TEXT_OPTIONS))
+  warmModel = getGenerativeModel(await getDeviceAi(), ON_DEVICE(TEXT_OPTIONS))
   await warmModel.initializeDeviceModel(onProgress)
 }
 

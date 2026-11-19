@@ -31,11 +31,11 @@ export function DeviceChip({ status, onPrepare }: { status: DeviceStatus; onPrep
       )}
     </>
   )
-  if (status.state === 'downloadable') {
+  if (status.state === 'downloadable' || status.state === 'stalled') {
     return (
-      <button type="button" className="device-chip is-action" onClick={onPrepare} title="Chrome downloads its built-in model once: about 2.5 GB, and it needs about 22 GB of free disk space.">
+      <button type="button" className="device-chip is-action" onClick={onPrepare} title="Chrome downloads its built-in model once. The download is about 2.5 GB, and Chrome needs about 22 GB of free disk space to install it.">
         {content}
-        <span className="chip-cta">Download</span>
+        <span className="chip-cta">{status.state === 'stalled' ? 'Try again' : 'Download'}</span>
       </button>
     )
   }

@@ -355,11 +355,22 @@ const referrals = (text) => text.split(/(?<=[.!?])\s+/).filter((s) => REFERRAL.t
 
 // Test double for Chrome's model availability and download progress. Installed
 // only in this test, only on the dev server; production builds ignore it.
-function installDeviceSeam() {
+//   notDownloaded: the model is not downloaded and nothing should start a download
+//   downloads:     the Download button runs a download to 100%, then the model is ready
+//   stalls:        the download stays at 0% (Chrome declines to start it, e.g. low disk)
+function installDeviceSeam(mode) {
   let state = { state: 'downloadable' }
+  window.__seamPrepareCalls = 0
   window.__blackbarDeviceSeam = {
     check: async () => state,
     prepare: async (onProgress) => {
+      window.__seamPrepareCalls++
+      if (mode === 'stalls') {
+        state = { state: 'downloading', progress: null }
+        onProgress(0)
+        return
+      }
+      state = { state: 'downloading', progress: null }
       for (let i = 0; i <= 10; i++) {
         onProgress(i / 10)
         await new Promise((r) => setTimeout(r, 120))
@@ -368,6 +379,17 @@ function installDeviceSeam() {
     },
   }
 }
+
+async function seamPage(ctx, mode) {
+  const p = await ctx.newPage()
+  await p.addInitScript(installDeviceSeam, mode)
+  await p.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
+  await p.goto('http://127.0.0.1:5183/')
+  await p.waitForSelector('.device-chip.is-action')
+  return p
+}
+
+const chipText = (p) => p.$eval('.device-chip', (e) => e.textContent.trim())
 
 async function phaseCloud() {
   fs.mkdirSync(SCREENS, { recursive: true })
@@ -379,30 +401,75 @@ async function phaseCloud() {
   const out = { mockCloud: process.env.E2E_MOCK === '1', when: new Date().toISOString(), answers: {}, axe: {} }
   const allIds = Object.values(SAMPLES).flatMap((s) => s.ids)
 
-  // (c) Download states through the test double.
+  // (c) Model states through the test double.
   {
-    const p0 = await ctx.newPage()
-    await p0.addInitScript(installDeviceSeam)
-    await p0.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
-    await p0.goto(base)
-    await p0.waitForSelector('.device-chip.is-action')
-    const states = [await p0.$eval('.device-chip', (e) => e.textContent.trim())]
-    await p0.click('.device-chip.is-action')
-    const seen = new Set()
-    for (let i = 0; i < 60; i++) {
-      const t = await p0.$eval('.device-chip', (e) => e.textContent.trim())
+    // Not downloaded: sealing a letter runs pattern checks at once and starts no download; sending works.
+    const p = await seamPage(ctx, 'notDownloaded')
+    const nd = { chip: await chipText(p) }
+    await p.click('[data-sample="bursar"]')
+    await p.waitForSelector(`.paper[aria-label="${SAMPLES.bursar.title}, sealed"]`)
+    await p.waitForTimeout(500)
+    nd.scan = await p.$eval('[data-scan]', (e) => e.getAttribute('data-scan'))
+    nd.scanLine = await p.$eval('.scanline', (e) => e.textContent.trim())
+    nd.inlineOffer = !!(await p.$('[data-testid="inline-download"]'))
+    nd.downloadsStarted = await p.evaluate(() => window.__seamPrepareCalls)
+    nd.sendEnabled = await p.$eval('[data-task="explain"]', (e) => !e.disabled)
+    await fullShot(p, '06-not-downloaded-light-1440.png')
+    await p.click('[data-task="explain"]')
+    nd.answer = await waitAnswer(p, 1)
+    nd.answerNotesPatternsOnly = await p.$eval('[data-testid="answer"] .answer-foot', (e) => e.textContent.includes('pattern checks only')).catch(() => false)
+    nd.downloadsStartedAfterSend = await p.evaluate(() => window.__seamPrepareCalls)
+    nd.pass = nd.scan === 'idle' && nd.inlineOffer && nd.downloadsStarted === 0 && nd.sendEnabled && nd.answer.status === 'done' && nd.answer.inferenceSource === 'in_cloud' && nd.answerNotesPatternsOnly && nd.downloadsStartedAfterSend === 0
+    nd.answer = { ...nd.answer, text: nd.answer.text.slice(0, 300) }
+    out.notDownloaded = nd
+    say('not downloaded', JSON.stringify({ ...nd, answer: { status: nd.answer.status, inferenceSource: nd.answer.inferenceSource } }))
+    await p.close()
+  }
+  {
+    // Download started by the button: progress, ready, then the scan runs on the letter and adds bars.
+    const p = await seamPage(ctx, 'downloads')
+    await p.click('[data-sample="rfe"]')
+    await p.waitForSelector(`.paper[aria-label="${SAMPLES.rfe.title}, sealed"]`)
+    const dl = { before: await p.$eval('[data-scan]', (e) => e.getAttribute('data-scan')), states: [await chipText(p)] }
+    const riley = () => p.evaluate(() => [...document.querySelectorAll('.doc-text .bar')].some((b) => b.dataset.text === 'Riley Sample'))
+    dl.rileyBarredBefore = await riley()
+    await p.click('[data-testid="inline-download"]')
+    const seen = new Set(dl.states)
+    for (let i = 0; i < 100; i++) {
+      const t = await chipText(p)
       if (!seen.has(t)) {
         seen.add(t)
-        states.push(t)
-        if (/Downloading model, 50%/.test(t)) await fullShot(p0, '00-downloading-light-1440.png')
+        dl.states.push(t)
+        if (/Downloading model, 50%/.test(t)) await fullShot(p, '00-downloading-light-1440.png')
       }
       if (/ready/.test(t)) break
-      await p0.waitForTimeout(40)
+      await p.waitForTimeout(40)
     }
-    out.downloadStates = states
-    out.downloadOk = /not downloaded.*Download/.test(states[0]) && states.some((t) => /Downloading model, \d+%/.test(t)) && /ready/.test(states.at(-1))
-    say('download states', JSON.stringify(states), out.downloadOk)
-    await p0.close()
+    await p.waitForFunction(() => document.querySelector('[data-scan]')?.getAttribute('data-scan') === 'done', null, { timeout: 90000 })
+    dl.rileyBarredAfter = await riley()
+    dl.summary = await p.$eval('[data-testid="hidden-summary"]', (e) => e.textContent)
+    dl.downloadsStarted = await p.evaluate(() => window.__seamPrepareCalls)
+    dl.pass = dl.before === 'idle' && !dl.rileyBarredBefore && dl.states.some((t) => /Downloading model, \d+%/.test(t)) && /ready/.test(dl.states.at(-1)) && dl.rileyBarredAfter && dl.downloadsStarted === 1
+    out.download = dl
+    say('download then scan', JSON.stringify(dl))
+    await p.close()
+  }
+  {
+    // Stalled download: a calm message after about 20 s, and sending still possible.
+    const p = await seamPage(ctx, 'stalls')
+    await p.click('[data-sample="bursar"]')
+    await p.waitForSelector(`.paper[aria-label="${SAMPLES.bursar.title}, sealed"]`)
+    await p.click('[data-testid="inline-download"]')
+    const t0 = Date.now()
+    await p.waitForFunction(() => /has not started the model download/.test(document.querySelector('.scanline')?.textContent ?? ''), null, { timeout: 40000 })
+    const st = { stalledAfterMs: Date.now() - t0, chip: await chipText(p), scanLine: await p.$eval('.scanline', (e) => e.textContent.trim()) }
+    st.sendEnabled = await p.$eval('[data-task="explain"]', (e) => !e.disabled)
+    st.retryOffered = !!(await p.$('[data-testid="inline-download"]'))
+    st.pass = st.sendEnabled && st.retryOffered && /Try again/.test(st.chip) && st.stalledAfterMs >= 19000
+    await fullShot(p, '07-stalled-light-1440.png')
+    out.stalled = st
+    say('stalled', JSON.stringify(st))
+    await p.close()
   }
 
   const page = ctx.pages()[0] ?? (await ctx.newPage())
