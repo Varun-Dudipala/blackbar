@@ -59,9 +59,10 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 
 `npm test` runs the unit tests: detectors, sealing, leak gate, question sealing, model-string mapping, deadlines, calendar files, chunking, prompts and the session state.
 
+Checked by hand on the hosted site (2026-11-18, Chrome 157 on macOS, in a profile without the model and with too little free disk space for Chrome to download it): the sample letter was sealed by pattern checks at once, the page reported that the model download had not started, sending stayed open, and "Explain it plainly" returned a Gemini answer (`in_cloud`) with App Check enforced through the reCAPTCHA Enterprise provider.
+
 **Not verified:**
-- a first-time model download in Chrome, and Chrome declining a download for lack of disk space (the model was already installed, so these states use a test double);
-- the reCAPTCHA Enterprise App Check provider used by the hosted build;
+- a complete first-time model download through this app (those states use a test double; the model on the test machine was installed beforehand);
 - Windows, Linux and ChromeOS;
 - photos of real paper letters (only a rendered image was tested);
 - screen readers other than through axe-core and the keyboard checks;
