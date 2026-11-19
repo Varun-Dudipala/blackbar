@@ -133,7 +133,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online, onShowQuot
           {a.status === 'streaming' && <span className="caret" aria-hidden="true" />}
         </div>
       )}
-      {a.status === 'done' && a.origin !== 'device' && <CheckLine check={a.check} deviceOk={deviceOk} />}
+      {a.status === 'done' && a.origin !== 'device' && <CheckLine check={a.check} deviceOk={deviceOk} languageName={languageName(a.language)} />}
       {a.status === 'done' && (
         <footer className="answer-foot">
           <span className="fine muted">

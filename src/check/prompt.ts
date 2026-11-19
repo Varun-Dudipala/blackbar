@@ -13,9 +13,9 @@ export const VERDICT_SCHEMA = {
         properties: {
           id: { type: 'integer' },
           verdict: { type: 'string', enum: ['supported', 'not_in_letter'] },
-          quote: { type: 'string' },
+          quotes: { type: 'array', items: { type: 'string' }, maxItems: 2 },
         },
-        required: ['id', 'verdict', 'quote'],
+        required: ['id', 'verdict', 'quotes'],
       },
     },
   },
@@ -40,7 +40,7 @@ For each statement, decide whether its letter passages say the same thing:
 - "supported": a passage says this. A statement that is shorter, reworded or leaves out details is still supported if nothing in it is different.
 - "not_in_letter": no passage says this. General advice and anything added by the explanation are not_in_letter.
 Names, reference numbers and addresses shown in [brackets] were copied from the letter.
-For "supported", quote: copy the words from the passage that says it, exactly as written, 6 to 30 words. For "not_in_letter", quote is "".
+For "supported", quotes: copy the words from the passage that says it, exactly as written, 6 to 40 words. If the statement joins two points from the letter, give two quotes, one for each. For "not_in_letter", quotes is [].
 The statement may be in another language; compare the meaning.
 
 ${blocks}`

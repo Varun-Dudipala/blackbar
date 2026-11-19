@@ -109,7 +109,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
 
   // The on-device check of the latest cloud answer. A newer answer, or a new
   // letter, cancels the one in progress.
-  const runCheck = useCallback(async (id: number, text: string, entries: readonly SealEntry[]) => {
+  const runCheck = useCallback(async (id: number, text: string, entries: readonly SealEntry[], language: string) => {
     const letter = letterRef.current
     if (!letter) return
     checkCtl.current?.abort()
@@ -118,7 +118,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
     const verifier = readyRef.current ? (prompt: string, schema: object, signal: AbortSignal) => verifyOnDevice(prompt, schema, signal) : null
     dispatch({ type: 'answer-check', id, check: { status: 'running', done: 0, total: 1 } })
     try {
-      const result = await checkAnswer(text, entries, letter, verifier, (done, total) => dispatch({ type: 'answer-check', id, check: { status: 'running', done, total } }), ctl.signal)
+      const result = await checkAnswer(text, entries, letter, verifier, (done, total) => dispatch({ type: 'answer-check', id, check: { status: 'running', done, total } }), ctl.signal, { language })
       if (ctl.signal.aborted) return
       dispatch({ type: 'answer-check', id, check: { status: 'done', result } })
       dispatch({ type: 'call', call: { label: result.mode === 'model' ? 'Check answer against letter' : 'Check numbers against letter', side: 'on_device', ms: result.ms } })
@@ -174,7 +174,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
           patch: { text: result.text, origin: standIn ? 'mock' : 'cloud', inferenceSource: result.inferenceSource, ms: result.ms, firstTokenMs: result.firstTokenMs, wordsSent: words },
         })
         dispatch({ type: 'call', call: { label: TASK_TITLE[task], side: standIn ? 'mock' : result.inferenceSource === 'in_cloud' ? 'in_cloud' : 'failed', ms: result.ms, wordsSent: words, sent: standIn ? undefined : outboundText(payload), patternsOnly } })
-        void runCheck(id, result.text, entries)
+        void runCheck(id, result.text, entries, language)
       } catch (e) {
         if (e instanceof LeakBlockedError) {
           dispatch({ type: 'answer-end', id, patch: { status: 'blocked', leaks: e.leaks } })

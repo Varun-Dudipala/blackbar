@@ -9,9 +9,17 @@ import { maskKnown } from '../seal/question'
 import { WithBars, type Reveal } from './Inline'
 
 const VERDICT_TEXT: Record<Verdict, string> = {
-  supported: 'Found in your letter',
-  not_found: 'Not found in your letter',
+  supported: 'Matched to your letter',
+  not_found: 'Could not be matched',
   conflicts: 'Differs from your letter',
+  not_compared: 'Not compared',
+}
+
+const MARK_TEXT: Record<Verdict, string> = {
+  supported: '',
+  not_found: 'Not matched',
+  conflicts: 'Differs',
+  not_compared: 'Not compared',
 }
 
 function Tick() {
@@ -34,10 +42,10 @@ interface MarkProps {
 export function CheckMark({ statements, open, onToggle, onShowQuote, reveal }: MarkProps): ReactNode {
   const v = blockVerdict(statements)
   if (!v) return null
-  const label = v === 'supported' ? '' : v === 'conflicts' ? 'Differs' : 'Not found'
+  const label = MARK_TEXT[v]
   return (
     <>
-      <button type="button" className={`check-mark is-${v}`} aria-expanded={open} aria-label={`${VERDICT_TEXT[v]}. Show what was checked.`} onClick={onToggle} data-verdict={v}>
+      <button type="button" className={`check-mark is-${v}`} aria-expanded={open} aria-label={label ? `${label}: ${VERDICT_TEXT[v].toLowerCase()}. Show what was checked.` : `${VERDICT_TEXT[v]}. Show what was checked.`} onClick={onToggle} data-verdict={v}>
         {v === 'supported' ? <Tick /> : label}
       </button>
       {open && (
@@ -60,7 +68,8 @@ export function CheckMark({ statements, open, onToggle, onShowQuote, reveal }: M
                 </p>
               )}
               {s.note && <p className="fine">{s.note}</p>}
-              {!s.quote && !s.note && s.verdict === 'not_found' && <p className="fine">No line in the letter was matched to this. It may be general advice, or it may be wrong.</p>}
+              {!s.quote && !s.note && s.verdict === 'not_found' && <p className="fine">No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself.</p>}
+              {s.verdict === 'not_compared' && <p className="fine">The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter.</p>}
             </div>
           ))}
         </div>
@@ -69,7 +78,7 @@ export function CheckMark({ statements, open, onToggle, onShowQuote, reveal }: M
   )
 }
 
-export function CheckLine({ check, deviceOk }: { check: AnswerCheck | undefined; deviceOk: boolean }) {
+export function CheckLine({ check, deviceOk, languageName }: { check: AnswerCheck | undefined; deviceOk: boolean; languageName: string }) {
   if (!check) return null
   if (check.status === 'running') {
     return (
@@ -84,9 +93,9 @@ export function CheckLine({ check, deviceOk }: { check: AnswerCheck | undefined;
   const flagged = s.notFound + s.conflicts
   return (
     <p className={`check-line${flagged ? ' is-flag' : ''}`} role="status" data-check="done" data-supported={s.supported} data-not-found={s.notFound} data-conflicts={s.conflicts} data-total={s.total}>
-      {summaryLine(s, check.result.mode)}
+      {summaryLine(s, check.result.mode, languageName)}
       {check.result.mode === 'numbers' && (deviceOk ? '' : " The wording was not checked, because Chrome's on-device model is not available.")}
-      {flagged > 0 && ' Press a mark to see what the letter says.'}
+      {s.conflicts > 0 && ' Press a mark to see what the letter says.'}
     </p>
   )
 }

@@ -114,3 +114,82 @@ export function plainlyInLetter(statement: string, match: SentenceMatch | null):
   if (!match || match.overlap < 0.75 || words(statement).length < 4) return false
   return NEGATION.test(statement) === NEGATION.test(match.text)
 }
+
+/** A light stemmer for overlap: "photographs" and "photograph", "reviewing" and "review" count as one word. */
+export function stem(w: string): string {
+  if (w.length > 5 && w.endsWith('ies')) return w.slice(0, -3) + 'y'
+  if (w.length > 5 && w.endsWith('ing')) return w.slice(0, -3)
+  if (w.length > 4 && w.endsWith('ed')) return w.slice(0, -2)
+  if (w.length > 4 && w.endsWith('es') && !w.endsWith('ses')) return w.slice(0, -2)
+  if (w.length > 3 && w.endsWith('s') && !w.endsWith('ss')) return w.slice(0, -1)
+  return w
+}
+
+export const stems = (s: string) => words(s).map(stem)
+
+/** Initials of a stretch of text ("optional practical training" gives "opt", "U.S. Citizenship" gives "usc"). */
+export function initials(text: string): string {
+  return text
+    .split(/\s+/)
+    .map((t) => (/^(?:[A-Za-z]\.){2,}$/.test(t) ? t.replace(/\./g, '') : t.replace(/[^\p{L}\p{N}]/gu, '').charAt(0)))
+    .join('')
+    .toLowerCase()
+}
+
+/** Acronyms written in capitals in the statement, such as "USCIS" or "OPT". */
+const acronyms = (s: string) => [...new Set(s.match(/\b[A-Z]{2,6}\b/g) ?? [])].map((a) => a.toLowerCase())
+
+/**
+ * The run of one to `maxWindow` adjacent letter sentences that contains the
+ * largest share of the statement's content words (after stemming). An acronym
+ * in the statement counts as present when the window spells it out ("OPT" and
+ * "optional practical training"). Ties go to the shorter window. The text
+ * returned is the letter's own text.
+ */
+export function bestWindow(statement: string, letter: string, sentences: { start: number; end: number; text: string }[], maxWindow = 3): SentenceMatch | null {
+  const acr = acronyms(statement)
+  const want = [...new Set(stems(statement))]
+  if (!want.length || !sentences.length) return null
+  const sets = sentences.map((s) => new Set(stems(s.text)))
+  let best: SentenceMatch | null = null
+  for (let i = 0; i < sentences.length; i++) {
+    const have = new Set<string>()
+    for (let w = 0; w < maxWindow && i + w < sentences.length; w++) {
+      for (const x of sets[i + w]) have.add(x)
+      const start = sentences[i].start
+      const end = sentences[i + w].end
+      const text = letter.slice(start, end)
+      const spelled = initials(text)
+      const covered = want.filter((x) => have.has(x) || (acr.includes(x) && spelled.includes(x))).length
+      const overlap = covered / want.length
+      const better = !best || overlap > best.overlap + 1e-9 || (Math.abs(overlap - best.overlap) <= 1e-9 && end - start < best.end - best.start)
+      if (better) best = { start, end, text, overlap }
+    }
+  }
+  return best
+}
+
+/**
+ * True when code alone can say a statement is in the letter: one to three
+ * adjacent letter sentences hold at least `threshold` of its content words
+ * (and at least 4 of them), and neither side negates what the other says.
+ */
+export function plainlyInWindow(statement: string, match: SentenceMatch | null, threshold: number): boolean {
+  if (!match || match.overlap < threshold || words(statement).length < 4) return false
+  const neg = /\b(?:not|no|never|without|none|neither|nor|cannot|can't|don't|doesn't|isn't|aren't|won't)\b/i
+  return neg.test(statement) === neg.test(match.text)
+}
+
+/** Share of the statement's content words that `text` contains (stemmed; acronyms count when spelled out). */
+export function coverage(statement: string, text: string): number {
+  const want = [...new Set(stems(statement))]
+  if (!want.length) return 0
+  const have = new Set(stems(text))
+  const acr = acronyms(statement)
+  const spelled = initials(text)
+  return want.filter((x) => have.has(x) || (acr.includes(x) && spelled.includes(x))).length / want.length
+}
+
+const NEG = /\b(?:not|no|never|without|none|neither|nor|cannot|can't|don't|doesn't|isn't|aren't|won't)\b/i
+/** True when the statement and the text agree on whether something is negated. */
+export const sameNegation = (a: string, b: string) => NEG.test(a) === NEG.test(b)

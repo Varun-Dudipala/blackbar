@@ -98,10 +98,17 @@ describe('quote verification and verdicts', () => {
     expect(r.verdict).toBe('not_found')
   })
 
-  it('keeps a supported verdict with a verified quote', () => {
-    const r = settle(st, [], null, false, { id: 0, verdict: 'supported', quote: 'A copy of the biographic page of your passport.' }, rfe)
+  it('keeps a supported verdict with a verified quote that covers the statement', () => {
+    const passport = { ...st, text: 'Send a copy of the biographic page of your passport.' }
+    const r = settle(passport, [], null, false, { id: 0, verdict: 'supported', quote: 'A copy of the biographic page of your passport.' }, rfe)
     expect(r.verdict).toBe('supported')
     expect(r.quote?.text).toBe('A copy of the biographic page of your passport.')
+    // A real quote that shares little with the statement is not support.
+    const other = settle({ ...st, text: 'USCIS is reviewing your application for a green card.' }, [], null, false, { id: 0, verdict: 'supported', quote: 'We are reviewing your Form I-765 for optional practical training.' }, rfe)
+    expect(other.verdict).toBe('not_found')
+    // Nor is one that negates what the statement says.
+    const neg = settle({ ...st, text: 'You can register for spring classes while the hold is active.' }, [], null, false, { id: 0, verdict: 'supported', quote: 'While the hold is active you cannot register for spring classes' }, buildSamples({ year: 2026, month: 11, day: 18 })[2].text)
+    expect(neg.verdict).toBe('not_found')
   })
 
   it('lets code, and only code, flag a statement', () => {
@@ -134,7 +141,7 @@ describe('quote verification and verdicts', () => {
       { ...st, verdict: 'supported', tokens: [] },
       { ...st, verdict: 'not_found', tokens: [] },
     ])
-    expect(summaryLine(s, 'model')).toBe('Checked on this device: 2 of 3 statements found in your letter. 1 not found.')
+    expect(summaryLine(s, 'model')).toBe('Checked on this device: 2 of 3 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself.')
     expect(blockVerdict([{ ...st, verdict: 'supported', tokens: [] }, { ...st, verdict: 'conflicts', tokens: [] }])).toBe('conflicts')
   })
 })
@@ -240,9 +247,10 @@ describe('second opinion', () => {
       prompts.push(p)
       const ids = [...p.matchAll(/STATEMENT (\d+):/g)].map((m) => Number(m[1]))
       const lone = ids.length === 1
-      return { text: JSON.stringify({ results: ids.map((id) => ({ id, verdict: lone ? 'supported' : 'not_in_letter', quote: lone ? 'A copy of the biographic page of your passport.' : '' })) }) }
+      const quote = /biographic/.test(p) ? 'A copy of the biographic page of your passport.' : 'Two passport-style photographs with your name and A-Number written lightly on the back.'
+      return { text: JSON.stringify({ results: ids.map((id) => ({ id, verdict: lone ? 'supported' : 'not_in_letter', quotes: lone ? [quote] : [] })) }) }
     }
-    const r = await checkAnswer('Include the picture page of your travel document.\n\nBring two small pictures of yourself, labelled on the reverse.', [], rfe, v, () => {}, new AbortController().signal)
+    const r = await checkAnswer('Include a copy of the biographic page from your passport book.\n\nBring two passport-style photographs labelled with your name.', [], rfe, v, () => {}, new AbortController().signal)
     expect(prompts).toHaveLength(3)
     expect(r.calls).toBe(3)
     expect(r.statements.map((s) => s.verdict)).toEqual(['supported', 'supported'])
@@ -252,5 +260,26 @@ describe('second opinion', () => {
 describe('sign-off blocks', () => {
   it('does not check a block of hidden details and labels', () => {
     expect(isCheckable('⟦NAME_1⟧ Student ID: ⟦ACCOUNT_1⟧ SEVIS ID: ⟦SEVIS_1⟧')).toBe(false)
+  })
+})
+
+describe('windows and other languages', () => {
+  it('matches a statement against two adjacent sentences, and spells out acronyms', async () => {
+    const { bestWindow, letterSentences, plainlyInWindow } = await import('./passages')
+    const st = 'USCIS is reviewing your application for OPT and the evidence you submitted is not sufficient to establish eligibility.'
+    const m = bestWindow(st, rfe, letterSentences(rfe), 2)
+    expect(m?.text).toContain('We are reviewing your Form I-765 for optional practical training. The evidence you submitted')
+    expect(plainlyInWindow(st, m, 0.7)).toBe(true)
+  })
+
+  it('does not compare the wording of an answer in another language, but still compares its numbers', async () => {
+    const answer = 'Pague antes del December 23, 2026.\n\nReúna los documentos que pide la carta antes de enviarlos.'
+    const r = await checkAnswer(answer, [], rfe, async () => ({ text: '{}' }), () => {}, new AbortController().signal, { language: 'es' })
+    expect(r.mode).toBe('other-language')
+    expect(r.calls).toBe(0)
+    expect(r.statements.map((s) => s.verdict)).toEqual(['not_found', 'not_compared'])
+    expect(summaryLine(summarise(r.statements), 'other-language', 'Spanish')).toBe(
+      'Checked on this device: this answer is in Spanish, so its wording was not compared with the letter. Dates, amounts and references were compared in all 2 statements; 1 matches the letter. 1 has a number the letter does not contain.',
+    )
   })
 })

@@ -570,3 +570,5 @@ mark.restored { background: var(--accent-soft); color: inherit; padding: 0 2px; 
 .check-line.is-running::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #8d5300; margin-right: 8px; animation: pulse 1.4s infinite; }
 .doc-text .in-quote:not(.bar) { background: rgb(176 45 20 / .12); box-shadow: inset 0 -2px 0 #b02d14; border-radius: 1px; }
 .doc-text .bar.in-quote { box-shadow: 0 0 0 2px #b02d14; }
+.check-mark.is-not_compared { color: var(--paper-muted); border-color: #cfc6b4; }
+.check-item.is-not_compared .check-verdict { color: var(--paper-muted); }
