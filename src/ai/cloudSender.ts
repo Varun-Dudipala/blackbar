@@ -29,6 +29,21 @@ export const firebaseCloudSender: CloudSender = async (payload: CloudPayload): P
 
 /** The sender for this build. The mock exists only in dev builds with VITE_MOCK_CLOUD=true. */
 export async function getCloudSender(): Promise<CloudSender> {
+  // TEST DOUBLE, development builds only: the e2e script can install
+  // window.__blackbarCloudSeam = { answer } to return a fixed answer (shown as
+  // a mock), for example a deliberately wrong one that the answer check must flag.
+  if (import.meta.env.DEV) {
+    const seam = (globalThis as typeof globalThis & { __blackbarCloudSeam?: { answer: string } }).__blackbarCloudSeam
+    if (seam) {
+      return async () => ({
+        origin: 'mock',
+        chunks: (async function* () {
+          yield seam.answer
+        })(),
+        done: Promise.resolve({ inferenceSource: 'mock' }),
+      })
+    }
+  }
   if (import.meta.env.DEV && import.meta.env.VITE_MOCK_CLOUD === 'true') {
     const { mockCloudSender } = await import('./mockCloud')
     return mockCloudSender

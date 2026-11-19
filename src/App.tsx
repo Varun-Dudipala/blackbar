@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildSamples } from './letters/samples'
 import { scrollToId, useDevice, useOnline, useTheme } from './state/hooks'
 import { useBlackbar } from './state/useBlackbar'
@@ -39,10 +39,15 @@ export default function App() {
   const bb = useBlackbar(device, online)
   const { session, sealed } = bb
   const lastLetter = useRef<string | null>(null)
+  // A passage of the letter to show, chosen from an answer check mark.
+  const [highlight, setHighlight] = useState<{ start: number; end: number; n: number } | null>(null)
 
   useEffect(() => {
     const text = session.letter?.text ?? null
-    if (text && text !== lastLetter.current) requestAnimationFrame(() => scrollToId('seal'))
+    if (text && text !== lastLetter.current) {
+      requestAnimationFrame(() => scrollToId('seal'))
+      setHighlight(null)
+    }
     lastLetter.current = text
   }, [session.letter])
 
@@ -110,7 +115,7 @@ export default function App() {
 
         <Stage id="seal" n={2} title="Seal" lede="Each identifier found on this device is under a black bar. Press a bar to check it, or select text to add one. Nothing has been sent.">
           {session.letter && sealed ? (
-            <SealStage session={session} sealed={sealed} device={device.status} dispatch={bb.dispatch} onRescan={bb.rescan} onDownload={device.download} />
+            <SealStage session={session} sealed={sealed} device={device.status} dispatch={bb.dispatch} onRescan={bb.rescan} onDownload={device.download} highlight={highlight} />
           ) : (
             <Empty>
               <p>No letter yet.</p>
@@ -130,6 +135,7 @@ export default function App() {
               onAsk={(task, lang) => void bb.ask(task, lang)}
               onFollowUp={(q, lang) => void bb.followUp(q, lang)}
               onDevice={() => void bb.answerOnDevice()}
+              onShowQuote={(q) => setHighlight({ start: q.start, end: q.end, n: Date.now() })}
             />
           ) : (
             <Empty>

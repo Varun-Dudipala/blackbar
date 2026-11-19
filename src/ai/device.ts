@@ -107,7 +107,7 @@ async function modelFor(createOptions: LanguageModelCreateOptions, signal: Abort
 // ---------- errors ----------
 
 export class OnDeviceError extends Error {
-  readonly kind: 'too-long' | 'timeout' | 'not-on-device' | 'bad-output' | 'failed'
+  readonly kind: 'too-long' | 'timeout' | 'not-on-device' | 'bad-output' | 'failed' | 'cancelled'
   constructor(kind: OnDeviceError['kind'], message: string) {
     super(message)
     this.name = 'OnDeviceError'
@@ -138,6 +138,8 @@ interface Job {
   constraint?: object
   request: string | Part[]
   timeoutMs: number
+  /** Cancels the request from outside, for example when a newer answer arrives. */
+  signal?: AbortSignal
 }
 
 async function generate(job: Job): Promise<{ text: string; call: OnDeviceCall }> {
@@ -147,8 +149,11 @@ async function generate(job: Job): Promise<{ text: string; call: OnDeviceCall }>
     timedOut = true
     controller.abort()
   }, job.timeoutMs)
+  const onAbort = () => controller.abort()
+  job.signal?.addEventListener('abort', onAbort)
   const t0 = performance.now()
   try {
+    if (job.signal?.aborted) throw new OnDeviceError('cancelled', 'Cancelled.')
     const model = await modelFor(job.options, controller.signal, job.constraint)
     keepAlive.model = model
     const result = await model.generateContent(job.request)
@@ -156,9 +161,11 @@ async function generate(job: Job): Promise<{ text: string; call: OnDeviceCall }>
     if (source !== 'on_device') throw new OnDeviceError('not-on-device', `Expected an on-device answer, got "${source}". The result was discarded.`)
     return { text: result.response.text(), call: { label: job.label, ms: Math.round(performance.now() - t0), inferenceSource: source } }
   } catch (e) {
+    if (job.signal?.aborted) throw new OnDeviceError('cancelled', 'Cancelled.')
     throw wrap(e, timedOut)
   } finally {
     clearTimeout(timer)
+    job.signal?.removeEventListener('abort', onAbort)
   }
 }
 
@@ -264,6 +271,11 @@ export async function explainOnDevice(text: string, onText: (soFar: string) => v
   } finally {
     clearTimeout(timer)
   }
+}
+
+/** One batch of the answer check: verdicts for a few statements, on the device only. */
+export async function verifyOnDevice(prompt: string, schema: object, signal: AbortSignal): Promise<{ text: string; call: OnDeviceCall }> {
+  return generate({ label: 'Check answer', options: TEXT_OPTIONS, constraint: schema, request: prompt, timeoutMs: 45_000, signal })
 }
 
 export const tokenEstimate = estimateTokens

@@ -13,9 +13,11 @@ interface Props {
   onUnseal: (start: number) => void
   onReseal: (start: number) => void
   onAddBar: (start: number, end: number, kind: Kind) => void
+  /** A passage to show, from an answer check. Changing `n` scrolls to it again. */
+  highlight?: { start: number; end: number; n: number } | null
 }
 
-type Segment = { type: 'text'; start: number; text: string } | { type: 'bar' | 'kept'; span: Span; index: number }
+type Segment = { type: 'text'; start: number; text: string; quote?: boolean } | { type: 'bar' | 'kept'; span: Span; index: number; quote?: boolean }
 
 function segments(text: string, spans: Span[], kept: Span[]): Segment[] {
   const all = [...spans.map((s) => ({ s, kept: false })), ...kept.map((s) => ({ s, kept: true }))].sort((a, b) => a.s.start - b.s.start)
@@ -29,6 +31,29 @@ function segments(text: string, spans: Span[], kept: Span[]): Segment[] {
     cursor = s.end
   }
   if (cursor < text.length) out.push({ type: 'text', start: cursor, text: text.slice(cursor) })
+  return out
+}
+
+/** Splits text segments at the edges of a quoted passage and marks what lies inside it. */
+function markQuote(segs: Segment[], q: { start: number; end: number } | null | undefined): Segment[] {
+  if (!q) return segs
+  const out: Segment[] = []
+  for (const seg of segs) {
+    if (seg.type !== 'text') {
+      out.push({ ...seg, quote: seg.span.start < q.end && q.start < seg.span.end })
+      continue
+    }
+    const a = seg.start
+    const b = seg.start + seg.text.length
+    if (b <= q.start || q.end <= a) {
+      out.push(seg)
+      continue
+    }
+    const cuts = [a, Math.max(a, q.start), Math.min(b, q.end), b]
+    for (let i = 0; i < 3; i++) {
+      if (cuts[i + 1] > cuts[i]) out.push({ type: 'text', start: cuts[i], text: seg.text.slice(cuts[i] - a, cuts[i + 1] - a), quote: i === 1 })
+    }
+  }
   return out
 }
 
@@ -62,7 +87,7 @@ interface Pending {
   left: number
 }
 
-export function SealedDocument({ text, spans, keptVisible, onUnseal, onReseal, onAddBar }: Props) {
+export function SealedDocument({ text, spans, keptVisible, onUnseal, onReseal, onAddBar, highlight }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
@@ -70,7 +95,13 @@ export function SealedDocument({ text, spans, keptVisible, onUnseal, onReseal, o
   const [peek, setPeek] = useState(false)
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
-  const segs = useMemo(() => segments(text, spans, keptVisible), [text, spans, keptVisible])
+  const segs = useMemo(() => markQuote(segments(text, spans, keptVisible), highlight), [text, spans, keptVisible, highlight])
+
+  useEffect(() => {
+    if (!highlight) return
+    const el = textRef.current?.querySelector('.in-quote')
+    el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' })
+  }, [highlight])
   const current = selected ? (selected.kept ? keptVisible : spans).find((s) => s.start === selected.start) : undefined
 
   const close = useCallback((refocus: boolean) => {
@@ -159,7 +190,7 @@ export function SealedDocument({ text, spans, keptVisible, onUnseal, onReseal, o
         {segs.map((seg) => {
           if (seg.type === 'text') {
             return (
-              <span key={`t${seg.start}`} data-o={seg.start}>
+              <span key={`t${seg.start}`} data-o={seg.start} className={seg.quote ? 'in-quote' : undefined}>
                 {seg.text}
               </span>
             )
@@ -186,7 +217,7 @@ export function SealedDocument({ text, spans, keptVisible, onUnseal, onReseal, o
             <button
               key={`b${span.start}-${span.end}`}
               type="button"
-              className={`bar src-${span.source}`}
+              className={`bar src-${span.source}${seg.quote ? ' in-quote' : ''}`}
               style={{ ['--i' as string]: Math.min(seg.index, 24) }}
               data-o={span.start}
               data-e={span.end}

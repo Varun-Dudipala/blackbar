@@ -9,6 +9,8 @@ import { KIND_LABEL } from '../seal/kinds'
 import type { Answer } from '../state/session'
 import { WithBars, type Reveal } from './Inline'
 import { Markdown } from './Markdown'
+import { CheckLine, CheckMark } from './AnswerCheck'
+import { byBlock, type Quote } from '../check/verdicts'
 
 interface Props {
   sealed: Sealed
@@ -20,6 +22,7 @@ interface Props {
   onAsk: (task: Exclude<CloudTask, 'followup'>, language: LanguageCode) => void
   onFollowUp: (question: string, language: LanguageCode) => void
   onDevice: () => void
+  onShowQuote: (q: Quote) => void
 }
 
 const ACTIONS: { task: Exclude<CloudTask, 'followup'>; label: string; note: string }[] = [
@@ -43,8 +46,14 @@ function SideBadge({ a }: { a: Answer }) {
   return <span className="tag tag-cloud">Cloud</span>
 }
 
-function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online }: { a: Answer; reveal: Reveal; onDevice: () => void; onRetry?: () => void; deviceOk: boolean; online: boolean }) {
+function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online, onShowQuote }: { a: Answer; reveal: Reveal; onDevice: () => void; onRetry?: () => void; deviceOk: boolean; online: boolean; onShowQuote: (q: Quote) => void }) {
   const [copied, setCopied] = useState(false)
+  const [openKey, setOpenKey] = useState<string | null>(null)
+  const marks = useMemo(() => byBlock(a.check?.status === 'done' ? a.check.result.statements : undefined), [a.check])
+  const after = (key: string) => {
+    const st = marks.get(key)
+    return st ? <CheckMark statements={st} open={openKey === key} onToggle={() => setOpenKey(openKey === key ? null : key)} onShowQuote={onShowQuote} reveal={reveal} /> : null
+  }
   const title = a.task === 'device' ? 'Plain explanation' : TASK_TITLE[a.task]
   const copy = async () => {
     let text = a.text
@@ -120,10 +129,11 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online }: { a: Ans
       )}
       {(a.status === 'streaming' || a.status === 'done') && (
         <div className="answer-body" dir={isRtl(a.language) ? 'rtl' : undefined} lang={a.language}>
-          {a.text ? <Markdown source={a.text} reveal={reveal} /> : <p className="muted">{a.origin === 'device' ? 'Writing on this device.' : 'Sent. Waiting for Gemini.'}</p>}
+          {a.text ? <Markdown source={a.text} reveal={reveal} after={after} /> : <p className="muted">{a.origin === 'device' ? 'Writing on this device.' : 'Sent. Waiting for Gemini.'}</p>}
           {a.status === 'streaming' && <span className="caret" aria-hidden="true" />}
         </div>
       )}
+      {a.status === 'done' && a.origin !== 'device' && <CheckLine check={a.check} deviceOk={deviceOk} />}
       {a.status === 'done' && (
         <footer className="answer-foot">
           <span className="fine muted">
@@ -144,7 +154,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online }: { a: Ans
   )
 }
 
-export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scanning, onAsk, onFollowUp, onDevice }: Props) {
+export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scanning, onAsk, onFollowUp, onDevice, onShowQuote }: Props) {
   const [language, setLanguage] = useState<LanguageCode>('en')
   const [show, setShow] = useState(false)
   const [showInstructions, setShowInstructions] = useState(false)
@@ -250,6 +260,7 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
                 onDevice={onDevice}
                 deviceOk={deviceOk}
                 online={online}
+                onShowQuote={onShowQuote}
                 onRetry={a.task !== 'device' && a.task !== 'followup' ? () => onAsk(a.task as Exclude<CloudTask, 'followup'>, a.language) : undefined}
               />
             ))}

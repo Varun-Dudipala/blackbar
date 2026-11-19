@@ -22,6 +22,7 @@ interface Props {
   dispatch: (a: Action) => void
   onRescan: () => void
   onDownload: () => void
+  highlight?: { start: number; end: number; n: number } | null
 }
 
 function OnDeviceTag() {
@@ -270,7 +271,7 @@ function GlanceCard({ session, sealed, device }: { session: Session; sealed: Sea
   )
 }
 
-export function SealStage({ session, sealed, device, dispatch, onRescan, onDownload }: Props) {
+export function SealStage({ session, sealed, device, dispatch, onRescan, onDownload, highlight }: Props) {
   const letter = session.letter
   if (!letter) return null
   return (
@@ -291,6 +292,7 @@ export function SealStage({ session, sealed, device, dispatch, onRescan, onDownl
             onUnseal={(start) => dispatch({ type: 'unseal', start })}
             onReseal={(start) => dispatch({ type: 'reseal', start })}
             onAddBar={(start, end, kind) => dispatch({ type: 'add-bar', start, end, kind })}
+            highlight={highlight}
           />
         </article>
         <AddBar text={letter.text} onAdd={(start, end) => dispatch({ type: 'add-bar', start, end, kind: guessKind(letter.text.slice(start, end)) })} />

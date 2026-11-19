@@ -6,6 +6,7 @@ import { completeSpans, mergeSpans } from '../seal/modelSpans'
 import type { GlanceResult } from '../ai/device'
 import type { CloudFailure } from '../ai/cloudErrors'
 import type { CloudTask, LanguageCode } from '../ai/prompts'
+import type { CheckResult } from '../check/run'
 
 export interface Letter {
   text: string
@@ -35,6 +36,13 @@ export interface CallRecord {
   patternsOnly?: boolean
 }
 
+/** The on-device check of a cloud answer against the letter. */
+export type AnswerCheck =
+  | { status: 'running'; done: number; total: number }
+  | { status: 'done'; result: CheckResult }
+  | { status: 'error'; message: string }
+  | { status: 'cancelled' }
+
 export interface Answer {
   id: number
   task: CloudTask | 'device'
@@ -53,6 +61,7 @@ export interface Answer {
   failure?: CloudFailure
   leaks?: Leak[]
   partial?: boolean
+  check?: AnswerCheck
 }
 
 export interface Session {
@@ -90,6 +99,7 @@ export type Action =
   | { type: 'answer-start'; answer: Omit<Answer, 'text' | 'status'> }
   | { type: 'answer-text'; id: number; text: string }
   | { type: 'answer-end'; id: number; patch: Partial<Answer> }
+  | { type: 'answer-check'; id: number; check: AnswerCheck }
   | { type: 'reset' }
 
 let nextId = 1
@@ -149,6 +159,8 @@ export function reducer(state: Session, action: Action): Session {
       return { ...state, answers: [...state.answers, { ...action.answer, text: '', status: 'streaming' }] }
     case 'answer-text':
       return { ...state, answers: state.answers.map((a) => (a.id === action.id ? { ...a, text: action.text } : a)) }
+    case 'answer-check':
+      return { ...state, answers: state.answers.map((a) => (a.id === action.id ? { ...a, check: action.check } : a)) }
     case 'answer-end':
       return { ...state, answers: state.answers.map((a) => (a.id === action.id ? { ...a, status: 'done', ...action.patch } : a)) }
     case 'reset':

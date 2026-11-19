@@ -540,3 +540,33 @@ mark.restored { background: var(--accent-soft); color: inherit; padding: 0 2px; 
 .receipt-paper .stat-sub, .answer .stat-sub { color: var(--paper-muted); }
 .answer .muted, .answer .fine, .answer .tech, .receipt-paper th { color: var(--paper-muted); }
 .answer .link { color: #a0280f; }
+
+/* ---------- answer check (on this device) ---------- */
+.md-block { display: grid; gap: 6px; justify-items: start; }
+.md-block > p { margin: 0; }
+.check-mark {
+  display: inline-flex; align-items: center; gap: 4px; margin: 2px 0 0; padding: 2px 7px 1px; min-height: 22px;
+  font: 500 11px/1.4 var(--mono); letter-spacing: .05em; text-transform: uppercase; cursor: pointer;
+  border: 1px solid currentColor; border-radius: 2px; background: transparent;
+}
+.md li .check-mark { margin-left: 6px; vertical-align: 1px; }
+.check-mark.is-supported { color: #2c6a3e; border-color: rgb(44 106 62 / .35); padding: 2px 5px 1px; }
+.check-mark.is-not_found { color: #7a4700; background: #f6ecd8; }
+.check-mark.is-conflicts { color: #9c2710; background: #f6ddd5; }
+.check-mark:hover { border-color: currentColor; }
+.check-detail { width: 100%; margin: 6px 0 4px; padding: 10px 12px; border-left: 2px solid #d5cdbd; background: #f6f2ea; display: grid; gap: 10px; font: 14px/1.5 var(--sans); }
+.check-item { display: grid; gap: 3px; }
+.check-verdict { font: 600 11.5px/1.3 var(--sans); letter-spacing: .08em; text-transform: uppercase; }
+.check-item.is-supported .check-verdict { color: #2c6a3e; }
+.check-item.is-not_found .check-verdict { color: #7a4700; }
+.check-item.is-conflicts .check-verdict { color: #9c2710; }
+.check-statement { color: #1a1813; }
+.check-quote { display: grid; gap: 3px; justify-items: start; font-family: var(--serif); }
+.check-quote q { quotes: '“' '”'; }
+.check-quote .link { font-family: var(--sans); font-size: 13.5px; color: #a0280f; }
+.check-line { margin: 0; padding: 8px 0 0; border-top: 1px solid #e6dfd0; font: 14px/1.5 var(--sans); color: #2c6a3e; }
+.check-line.is-flag { color: #7a4700; }
+.check-line.is-running { color: var(--paper-muted); }
+.check-line.is-running::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #8d5300; margin-right: 8px; animation: pulse 1.4s infinite; }
+.doc-text .in-quote:not(.bar) { background: rgb(176 45 20 / .12); box-shadow: inset 0 -2px 0 #b02d14; border-radius: 1px; }
+.doc-text .bar.in-quote { box-shadow: 0 0 0 2px #b02d14; }

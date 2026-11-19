@@ -40,6 +40,12 @@ describe('session reducer', () => {
     expect(s.keptVisible).toEqual([])
   })
 
+  it('records the on-device check of an answer', () => {
+    let s = reducer(start(), { type: 'answer-start', answer: { id: 900, task: 'explain', language: 'en', origin: 'cloud' } })
+    s = reducer(s, { type: 'answer-check', id: 900, check: { status: 'running', done: 1, total: 2 } })
+    expect(s.answers[0].check).toEqual({ status: 'running', done: 1, total: 2 })
+  })
+
   it('adds a hand-made bar', () => {
     const s = reducer(start(), { type: 'add-bar', start: 0, end: 6, kind: 'NAME' })
     expect(s.spans[0]).toMatchObject({ text: 'Jordan', source: 'user' })

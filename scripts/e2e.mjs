@@ -391,6 +391,34 @@ async function seamPage(ctx, mode) {
 
 const chipText = (p) => p.$eval('.device-chip', (e) => e.textContent.trim())
 
+// Waits for the on-device check of the nth answer and reads what it found.
+// `external` is the request log: the check must make no request at all.
+async function readCheck(page, n, external) {
+  const before = external.length
+  const t0 = Date.now()
+  await page.waitForFunction((n) => {
+    const line = document.querySelectorAll('[data-testid="answer"]')[n - 1]?.querySelector('.check-line')
+    return line && ['done', 'error', 'cancelled'].includes(line.dataset.check)
+  }, n, { timeout: 120000 })
+  const waitedMs = Date.now() - t0
+  const requestsDuringCheck = external.length - before
+  const card = (await page.$$('[data-testid="answer"]'))[n - 1]
+  const line = await card.$eval('.check-line', (e) => ({ state: e.dataset.check, text: e.textContent, supported: +e.dataset.supported, notFound: +e.dataset.notFound, conflicts: +e.dataset.conflicts, total: +e.dataset.total }))
+  const flagged = []
+  for (const mark of await card.$$('.check-mark:not(.is-supported)')) {
+    await mark.click()
+    const items = await mark.evaluate((m) => [...m.parentElement.querySelectorAll('.check-detail .check-item')].map((i) => ({
+      verdict: i.dataset.verdict,
+      statement: i.querySelector('.check-statement')?.textContent,
+      quote: i.querySelector('.check-quote q')?.textContent ?? null,
+      note: i.querySelector('.fine')?.textContent ?? null,
+    })))
+    flagged.push(...items.filter((x) => x.verdict !== 'supported'))
+    await mark.click()
+  }
+  return { ...line, waitedMs, requestsDuringCheck, flagged }
+}
+
 async function phaseCloud() {
   fs.mkdirSync(SCREENS, { recursive: true })
   const base = 'http://127.0.0.1:5183/'
@@ -532,11 +560,15 @@ async function phaseCloud() {
   let n = 0
   await page.click('[data-task="explain"]')
   out.answers.rfeExplain = await waitAnswer(page, ++n)
+  out.checks = {}
+  out.checks.rfeExplain = await readCheck(page, n, external)
+  say('check rfe explain', JSON.stringify({ ...out.checks.rfeExplain, flagged: out.checks.rfeExplain.flagged.length }))
   say('rfe explain', JSON.stringify({ ...out.answers.rfeExplain, text: undefined }))
   if (out.answers.rfeExplain.status === 'done') {
     await page.fill('#followup', 'Does Jordan Sample have to mail the two passport photos, or can they be uploaded?')
     await page.click('.followup button[type="submit"]')
     out.answers.rfeFollowUp = await waitAnswer(page, ++n)
+    out.checks.rfeFollowUp = await readCheck(page, n, external)
     out.answers.rfeFollowUp.questionSent = await page.$$eval('.asked-q', (e) => e.at(-1)?.textContent)
     say('rfe follow-up', JSON.stringify({ ...out.answers.rfeFollowUp, text: undefined }))
 
@@ -592,6 +624,32 @@ async function phaseCloud() {
     say('selection', JSON.stringify(sel))
   }
   await shoot(page, '03-ask')
+  {
+    const mark = (await page.$('[data-testid="answer"] .check-mark:not(.is-supported)')) ?? (await page.$('[data-testid="answer"] .check-mark'))
+    if (mark) {
+      await mark.click()
+      await page.waitForTimeout(200)
+      await mark.evaluate((m) => m.scrollIntoView({ block: 'center' }))
+      await page.screenshot({ path: path.join(SCREENS, '08-check-detail-light-1440.png') })
+      await mark.click()
+    }
+    // A mark with a line in the letter: "Show in the letter" scrolls the sealed letter to it.
+    const found = await page.$('[data-testid="answer"] .check-mark.is-supported')
+    if (found) {
+      await found.click()
+      await found.evaluate((m) => m.scrollIntoView({ block: 'center' }))
+      await page.waitForTimeout(200)
+      await page.screenshot({ path: path.join(SCREENS, '08-check-found-detail-light-1440.png') })
+      const show = await page.$('.check-detail .link')
+      if (show) {
+        await show.click()
+        await page.waitForTimeout(1200)
+        out.quoteShown = await page.$eval('.doc-text .in-quote', (e) => e.getBoundingClientRect().top > 0 && e.getBoundingClientRect().bottom < 900).catch(() => false)
+        await page.screenshot({ path: path.join(SCREENS, '08-check-quote-in-letter-light-1440.png') })
+      }
+      await found.click()
+    }
+  }
   await axe(page, '03-ask', out.axe)
 
   // Sticky "What leaves this device" panel beside long answers.
@@ -625,6 +683,7 @@ async function phaseCloud() {
   await page.selectOption('#lang', 'es')
   await page.click('[data-task="checklist"]')
   out.answers.rentChecklistEs = await waitAnswer(page, 1)
+  out.checks.rentChecklistEs = await readCheck(page, 1, external)
   say('rent checklist es', JSON.stringify({ ...out.answers.rentChecklistEs, text: undefined }))
   await fullShot(page, '03-ask-rent-checklist-es-light-1440.png')
 
@@ -632,6 +691,7 @@ async function phaseCloud() {
   await page.selectOption('#lang', 'en')
   await page.click('[data-task="draft"]')
   out.answers.bursarDraft = await waitAnswer(page, 1)
+  out.checks.bursarDraft = await readCheck(page, 1, external)
   say('bursar draft', JSON.stringify({ ...out.answers.bursarDraft, text: undefined }))
   await fullShot(page, '03-ask-bursar-draft-light-1440.png')
 
@@ -650,6 +710,56 @@ async function phaseCloud() {
   await page.setViewportSize({ width: 1440, height: 900 })
   await axe(page, '04-offline', out.axe)
   await ctx.setOffline(false)
+
+  // (e) A deliberately wrong answer through the dev-only cloud test double:
+  // a changed deadline, an invented fee and an invented requirement. The check
+  // must flag each one. The network is cut while the check runs.
+  {
+    const realDeadline = plusDays(SAMPLES.rfe.days).long
+    const wrongDeadline = plusDays(SAMPLES.rfe.days + 7).long
+    const answer = [
+      '### What this letter is',
+      'USCIS sent this request for evidence about your Form I-765 application for optional practical training.',
+      '',
+      '### What it asks for',
+      '- A copy of your Form I-20 endorsed by your Designated School Official within the last 30 days.',
+      '- Two passport-style photographs with your name and A-Number written lightly on the back.',
+      '- A letter from your employer confirming your job offer and salary.',
+      '- A processing fee of $85.00, paid by money order.',
+      '',
+      '### Deadline',
+      `Your response must be received by ${wrongDeadline}.`,
+    ].join('\n')
+    const p3 = await ctx.newPage()
+    await p3.addInitScript((answer) => {
+      window.__blackbarCloudSeam = { answer }
+    }, answer)
+    await p3.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
+    await p3.goto(base)
+    await waitReady(p3)
+    await p3.click('[data-sample="rfe"]')
+    await p3.waitForSelector(`.paper[aria-label="${SAMPLES.rfe.title}, sealed"]`)
+    await p3.waitForFunction(() => document.querySelector('[data-scan]')?.dataset.scan === 'done', null, { timeout: 90000 })
+    await p3.click('[data-task="explain"]')
+    await ctx.setOffline(true)
+    const inj = await readCheck(p3, 1, external)
+    inj.offlineDuringCheck = await p3.evaluate(() => !navigator.onLine)
+    await ctx.setOffline(false)
+    const flaggedText = inj.flagged.map((f) => f.statement).join(' | ')
+    inj.caught = {
+      changedDeadline: flaggedText.includes(wrongDeadline),
+      inventedFee: flaggedText.includes('$85.00'),
+      inventedRequirement: /employer/.test(flaggedText),
+    }
+    inj.correctOnesFlagged = inj.flagged.filter((f) => /Form I-20|passport-style|Form I-765/.test(f.statement)).map((f) => f.statement)
+    inj.realDeadline = realDeadline
+    inj.pass = Object.values(inj.caught).every(Boolean) && inj.requestsDuringCheck === 0 && inj.state === 'done'
+    await p3.evaluate(() => document.querySelector('[data-testid="answer"] .check-mark.is-conflicts, [data-testid="answer"] .check-mark.is-not_found')?.scrollIntoView({ block: 'center' }))
+    await p3.screenshot({ path: path.join(SCREENS, '09-check-test-double-wrong-answer-light-1440.png') })
+    out.injected = inj
+    say('injected wrong answer', JSON.stringify({ caught: inj.caught, pass: inj.pass, requests: inj.requestsDuringCheck, offline: inj.offlineDuringCheck, correctFlagged: inj.correctOnesFlagged.length, waitedMs: inj.waitedMs }))
+    await p3.close()
+  }
 
   const p2 = await ctx.newPage()
   await p2.addInitScript(() => {

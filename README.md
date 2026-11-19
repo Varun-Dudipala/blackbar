@@ -1,12 +1,12 @@
 # Blackbar
 
-Blackbar helps people who receive official letters in the United States (USCIS notices, landlord notices, university bills, insurance and bank letters) understand them without pasting their Social Security number, A-number, SEVIS ID, name or address into a chatbot. It is built for international students and immigrants. The letter is read and redacted in the browser by Chrome's built-in model, and only the redacted text can go to Gemini for a longer explanation, a checklist or a draft reply.
+Blackbar helps people who receive official letters in the United States (USCIS notices, landlord notices, university bills, insurance and bank letters) understand them without pasting their Social Security number, A-number, SEVIS ID, name or address into a chatbot. It is built for international students and immigrants. The letter is read and redacted in the browser by Chrome's built-in model, and only the redacted text can go to Gemini for a longer explanation, a checklist or a draft reply. When Gemini's answer comes back, the browser checks it against the full letter, which only the device has, and marks each statement it could or could not find there.
 
 **Try it:** https://blackbar-8cba0.web.app (the on-device features need desktop Chrome; see Requirements).
 
 **Demo video (3 minutes):** https://youtu.be/BRWf8HKutsA
 
-![How Blackbar handles a letter: sealing and the summary run on the device, a leak gate checks every request, Gemini receives sealed text only, and real details are put back on the device.](docs/architecture.svg)
+![How Blackbar handles a letter: sealing and the summary run on the device, a leak gate checks every request, Gemini receives sealed text only, and each answer is checked against the full letter and has the real details put back on the device.](docs/architecture.svg)
 
 ## Model calls
 
@@ -19,6 +19,7 @@ Every call goes through the Firebase AI Logic SDK (`firebase/ai`). There is one 
 | Read a photo or scan | `ONLY_ON_DEVICE`, PNG or JPEG input | Chrome built-in model | The image contains every identifier. |
 | Explain on this device | `ONLY_ON_DEVICE`, streamed | Chrome built-in model | Offered when the device is offline or a cloud request fails. It may read the full letter because nothing leaves the device. |
 | Explain it plainly, What should I do next?, Draft a reply, follow-up questions | `ONLY_IN_CLOUD`, streamed, `gemini-3.5-flash-lite` | Gemini through Firebase AI Logic, with App Check | Longer answers in ten languages. It receives sealed text only, after the leak gate. |
+| Check the answer against the letter | `ONLY_ON_DEVICE`, JSON output | Chrome built-in model, after code checks | Only the device has the full letter, so only the device can compare Gemini's answer with it. Nothing is sent. |
 | Model download | `initializeDeviceModel()` | Chrome | Called only from the Download button. Opening a letter never starts a download. |
 
 Each response's `inferenceSource` is shown in the privacy receipt. On-device results whose `inferenceSource` is not `on_device` are discarded.
@@ -30,6 +31,12 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 - **What is sent.** The "What leaves this device" panel shows the exact sealed text before anything is sent. Follow-up questions are sealed the same way, and the panel shows the question as it will be sent. Sending pauses only while the on-device model is checking the letter. If a letter is sent before the model has checked it (because the model is not downloaded, or is still downloading), the answer and the receipt say it was sealed by pattern checks only.
 - **Leak gate.** Before every cloud request, `leakCheck` (`src/seal/redact.ts`) searches the whole payload (instructions, letter, question and earlier answer) for every hidden value. It ignores letter case and finds copies with the spacing or punctuation removed. If it finds one, the request is not made and the reader sees which detail it was.
 - **Restoring.** Answers arrive with placeholders. "Show my details" puts the real values back in the browser.
+- **Checking the answer.** After each cloud answer, the browser checks it against the full letter (`src/check/`). It makes no network request; the e2e run asserts zero requests while it runs.
+  1. The answer is split into statements, one per sentence of each paragraph or list item. Headings, greetings, questions, sentences with a gap for the reader to fill in, and the referral line are skipped.
+  2. Code compares every date, amount and reference-like token (such as `I-765` or a phone number) in a statement with the letter, after normalising formats and restoring the hidden values on the device. A token that is not in the letter flags the statement: "Differs from your letter" when one letter sentence clearly covers the same point (that sentence is shown), otherwise "Not found".
+  3. A statement that repeats one letter sentence nearly word for word (at least 75% of its content words, with no negation on only one side) is marked as found, with that sentence as the quote.
+  4. The rest go to the on-device model in batches of up to four, each with the three letter passages that share the most rarely used words with it. The model sees hidden details only as labels such as "[A-number]". It can only find support: a "supported" verdict counts if its quote is found in the letter word for word (runs of white space may differ), or if one letter sentence contains at least 85% of the quote's words, in which case that sentence is shown. Anything else is "Not found", which means no line of the letter was matched to it. When a whole batch comes back unsupported, each statement is asked again on its own.
+  5. Each checked paragraph or list item gets a mark. Pressing it shows the statement, the line in the letter, and "Show in the letter", which scrolls the sealed letter to that line. A summary line under the answer gives the counts. Without the device model, only steps 2 and 3 run and the answer says its wording was not checked.
 - **Storage.** There are no accounts, no analytics and no server of our own. The letter lives in the tab's memory until the tab is closed or "Forget this letter" is pressed. The only thing written to the browser is the light or dark setting. The service worker caches the app's own files, never letter text.
 
 **Limits.**
@@ -38,6 +45,7 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 - Gemini sees everything that is not barred: the sender, dates, amounts and the wording of the letter.
 - Requests to Firebase carry the usual network metadata (IP address, App Check token).
 - Model readings of photos can drop or change characters. The transcription is shown for correction before sealing.
+- The answer check flags only what code can prove: a date, amount or reference that is not in the letter. It cannot prove that a reworded statement is wrong. "Not found" often means the statement is right but worded too differently to match, especially in another language (see the measured numbers below).
 
 ## What is verified
 
@@ -56,10 +64,16 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
   - not downloaded: opening a letter runs pattern checks at once, starts no download, offers the download, and a real Gemini request goes through and is marked as pattern-check sealing only;
   - Download pressed: progress to 100%, then the on-device model checks the letter and adds a bar for a name only it can find;
   - stalled at 0%: after 20 seconds the page says Chrome has not started the download and names disk space as the usual cause, offers a retry, and sending stays possible;
+- the answer check, for every real Gemini answer: it finishes, and no request is made while it runs; "Show in the letter" scrolls the sealed letter to the quoted line;
+- a deliberately wrong answer, through a development-only test double for the cloud model (shown in the app as a mock response): a deadline moved by a week, an invented $85.00 fee and an invented requirement (a letter from an employer). With the network cut during the check, all three were flagged in each of two runs, and none of the three correct statements in that answer was flagged in either run;
 - an axe-core accessibility scan of each state in light and dark;
 - the "What leaves this device" panel stays in view beside long answers at desktop width.
 
-`npm test` runs the unit tests: detectors, sealing, leak gate, question sealing, model-string mapping, deadlines, calendar files, chunking, prompts and the session state.
+`npm test` runs the unit tests: detectors, sealing, leak gate, question sealing, model-string mapping, deadlines, calendar files, chunking, prompts, the session state, and the answer check (statement splitting, token normalisation, passage selection, quote verification, verdict rules).
+
+**Answer check, measured** (two e2e runs on 2026-11-19, real Gemini answers on the three samples: an English explanation, a follow-up, a Spanish checklist and an English draft reply; 39 statements in all): 31 were found in the letter, 8 were "Not found" and none was "Differs". I read all 8 by hand. 7 were correct statements the check could not match (4 of them in the Spanish checklist, which the on-device model matches poorly against an English letter), so they are false alarms. 1 was general advice that is not in the letter. Gemini made no factual mistake in these answers, so there was no real mistake to catch. The check took 2 to 13 seconds per answer on an Apple M3. In tuning runs on the same answers, the share of correct statements left unmatched varied from run to run, up to 4 of 9 in the Spanish checklist.
+
+An earlier version asked the device model for a full verdict per statement (supported, not in the letter, or conflicts). On these correct answers it called some correct statements "conflicts" and sometimes returned "not in the letter" for a whole batch, so the model is now used only to find support, and only code can flag a statement.
 
 Checked by hand on the hosted site (2026-11-18, Chrome 157 on macOS, in a profile without the model and with too little free disk space for Chrome to download it): the sample letter was sealed by pattern checks at once, the page reported that the model download had not started, sending stayed open, and "Explain it plainly" returned a Gemini answer (`in_cloud`) with App Check enforced through the reCAPTCHA Enterprise provider.
 
@@ -69,7 +83,8 @@ Checked by hand on the hosted site (2026-11-18, Chrome 157 on macOS, in a profil
 - photos of real paper letters (only a rendered image was tested);
 - screen readers other than through axe-core and the keyboard checks;
 - answer quality in languages other than English and Spanish;
-- letters long enough to be split into parts with the real model (the splitting is unit-tested).
+- letters long enough to be split into parts with the real model (the splitting is unit-tested);
+- the answer check on real mistakes by Gemini (none occurred in the measured runs; only injected mistakes were tested), and on letters other than the three samples.
 
 ## Requirements
 
@@ -77,7 +92,7 @@ On-device features need desktop Chrome 139 or later with Chrome's built-in model
 
 Blackbar never downloads the model on its own. When Chrome reports the model as not downloaded, the Seal stage says that only pattern checks ran and offers a Download button. Chrome will not start the download with less than about 22 GB free; if the download shows no progress for 20 seconds, the page says so and offers a retry. When a download finishes, the model checks the letter that is open.
 
-Without the on-device model, Blackbar still works with pattern checks only. Sending to Gemini is not blocked, names are not found automatically, and the reader can black out anything by hand. Photos cannot be read, and there is no "At a glance" summary.
+Without the on-device model, Blackbar still works with pattern checks only. Sending to Gemini is not blocked, names are not found automatically, and the reader can black out anything by hand. Photos cannot be read, there is no "At a glance" summary, and answers are checked by code only (dates, amounts, references and near-verbatim sentences), with a note that their wording was not checked.
 
 ## Setup and run
 
@@ -109,6 +124,7 @@ Hosting configuration is in `firebase.json` (serves `dist/`, with no caching for
 
 - `src/seal/`: detectors, sealing and placeholders, leak check, question sealing, counts.
 - `src/ai/`: Firebase and App Check setup, on-device calls (`device.ts`), cloud calls and the leak gate (`cloud.ts`, `cloudSender.ts`), prompts, glance validation.
+- `src/check/`: the answer check: statements, tokens, passages, the verdict prompt, verdict rules and the runner.
 - `src/lib/`: dates and deadlines, calendar (`.ics`) files, chunking for the 9,216-token on-device limit, transcription fixes, a small Markdown reader.
 - `src/state/`: session state and hooks.
 - `src/components/`: the three stages and the privacy receipt.

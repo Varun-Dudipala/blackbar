@@ -6,7 +6,9 @@ import { detect } from '../seal/detectors'
 import { leakCheck, sanitizeInput, seal, type Sealed } from '../seal/redact'
 import { maskValuesKeepingPlaceholders, sealQuestion } from '../seal/question'
 import { wordCount } from '../seal/stats'
-import { explainOnDevice, findSensitive, OnDeviceError, readGlance } from '../ai/device'
+import { explainOnDevice, findSensitive, OnDeviceError, readGlance, verifyOnDevice } from '../ai/device'
+import { checkAnswer } from '../check/run'
+import type { SealEntry } from '../seal/redact'
 import { LeakBlockedError, buildPayload, outboundText, runCloud } from '../ai/cloud'
 import { classifyCloudError } from '../ai/cloudErrors'
 import { getCloudSender } from '../ai/cloudSender'
@@ -33,6 +35,7 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
   const [session, dispatch] = useReducer(reducer, initialSession)
   const letterRef = useRef<string | null>(null)
+  const checkCtl = useRef<AbortController | null>(null)
 
   const sealed = useMemo(() => (session.letter ? seal(session.letter.text, session.spans) : null), [session.letter, session.spans])
   const sealedRef = useRef(sealed)
@@ -93,6 +96,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
     (letter: Letter) => {
       const text = sanitizeInput(letter.text.replace(/\r\n/g, '\n')).trim()
       letterRef.current = text
+      checkCtl.current?.abort()
       // Pattern checks run at once. The effect above starts the model check when it can.
       dispatch({ type: 'letter', letter: { ...letter, text }, spans: detect(text) })
     },
@@ -102,6 +106,33 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
   const rescan = useCallback(() => {
     if (letterRef.current) void runOnDevice(letterRef.current)
   }, [runOnDevice])
+
+  // The on-device check of the latest cloud answer. A newer answer, or a new
+  // letter, cancels the one in progress.
+  const runCheck = useCallback(async (id: number, text: string, entries: readonly SealEntry[]) => {
+    const letter = letterRef.current
+    if (!letter) return
+    checkCtl.current?.abort()
+    const ctl = new AbortController()
+    checkCtl.current = ctl
+    const verifier = readyRef.current ? (prompt: string, schema: object, signal: AbortSignal) => verifyOnDevice(prompt, schema, signal) : null
+    dispatch({ type: 'answer-check', id, check: { status: 'running', done: 0, total: 1 } })
+    try {
+      const result = await checkAnswer(text, entries, letter, verifier, (done, total) => dispatch({ type: 'answer-check', id, check: { status: 'running', done, total } }), ctl.signal)
+      if (ctl.signal.aborted) return
+      dispatch({ type: 'answer-check', id, check: { status: 'done', result } })
+      dispatch({ type: 'call', call: { label: result.mode === 'model' ? 'Check answer against letter' : 'Check numbers against letter', side: 'on_device', ms: result.ms } })
+    } catch (e) {
+      if (ctl.signal.aborted) {
+        dispatch({ type: 'answer-check', id, check: { status: 'cancelled' } })
+        return
+      }
+      dispatch({ type: 'answer-check', id, check: { status: 'error', message: message(e) } })
+      dispatch({ type: 'call', call: { label: 'Check answer against letter', side: 'failed' } })
+    } finally {
+      if (checkCtl.current === ctl) checkCtl.current = null
+    }
+  }, [])
 
   const send = useCallback(
     async (task: CloudTask, language: LanguageCode, extra?: { question?: string }) => {
@@ -126,6 +157,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
         previousAnswer: task === 'followup' && previous ? maskValuesKeepingPlaceholders(previous.text, entries) : undefined,
         referral: referralFor(task, current.sealedText, isFirstAnswer, questionSent),
       })
+      checkCtl.current?.abort()
       const id = newId()
       // Record whether the on-device model had checked the letter when it was sent.
       const patternsOnly = scanRef.current !== 'done'
@@ -142,6 +174,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
           patch: { text: result.text, origin: standIn ? 'mock' : 'cloud', inferenceSource: result.inferenceSource, ms: result.ms, firstTokenMs: result.firstTokenMs, wordsSent: words },
         })
         dispatch({ type: 'call', call: { label: TASK_TITLE[task], side: standIn ? 'mock' : result.inferenceSource === 'in_cloud' ? 'in_cloud' : 'failed', ms: result.ms, wordsSent: words, sent: standIn ? undefined : outboundText(payload), patternsOnly } })
+        void runCheck(id, result.text, entries)
       } catch (e) {
         if (e instanceof LeakBlockedError) {
           dispatch({ type: 'answer-end', id, patch: { status: 'blocked', leaks: e.leaks } })
@@ -157,7 +190,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
         })
       }
     },
-    [online],
+    [online, runCheck],
   )
 
   const ask = useCallback((task: Exclude<CloudTask, 'followup'>, language: LanguageCode) => send(task, language), [send])

@@ -22,7 +22,7 @@ function Inlines({ parts, reveal }: { parts: Inline[]; reveal: Reveal }) {
   )
 }
 
-function Task({ parts, initial, reveal }: { parts: Inline[]; initial: boolean; reveal: Reveal }) {
+function Task({ parts, initial, reveal, after }: { parts: Inline[]; initial: boolean; reveal: Reveal; after?: React.ReactNode }) {
   const [done, setDone] = useState(initial)
   return (
     <li className={`task${done ? ' is-done' : ''}`}>
@@ -32,11 +32,13 @@ function Task({ parts, initial, reveal }: { parts: Inline[]; initial: boolean; r
           <Inlines parts={parts} reveal={reveal} />
         </span>
       </label>
+      {after}
     </li>
   )
 }
 
-export function Markdown({ source, reveal }: { source: string; reveal: Reveal }) {
+/** `after(key)` renders extra content at the end of a paragraph ("b3") or list item ("b4.2"). */
+export function Markdown({ source, reveal, after }: { source: string; reveal: Reveal; after?: (key: string) => React.ReactNode }) {
   const blocks = parseMarkdown(source)
   return (
     <div className="md">
@@ -53,9 +55,12 @@ export function Markdown({ source, reveal }: { source: string; reveal: Reveal })
           }
           case 'paragraph':
             return (
-              <p key={i}>
-                <Inlines parts={b.inline} reveal={reveal} />
-              </p>
+              <div key={i} className="md-block">
+                <p>
+                  <Inlines parts={b.inline} reveal={reveal} />
+                </p>
+                {after?.(`b${i}`)}
+              </div>
             )
           case 'rule':
             return <hr key={i} />
@@ -66,10 +71,11 @@ export function Markdown({ source, reveal }: { source: string; reveal: Reveal })
               <L key={i} className={tasks ? 'tasks' : undefined}>
                 {b.items.map((it, j) =>
                   it.checked !== null ? (
-                    <Task key={j} parts={it.inline} initial={it.checked} reveal={reveal} />
+                    <Task key={j} parts={it.inline} initial={it.checked} reveal={reveal} after={after?.(`b${i}.${j}`)} />
                   ) : (
                     <li key={j}>
                       <Inlines parts={it.inline} reveal={reveal} />
+                      {after?.(`b${i}.${j}`)}
                     </li>
                   ),
                 )}
