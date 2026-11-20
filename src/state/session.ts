@@ -21,7 +21,8 @@ export type Task<T> =
   | { status: 'done'; value: T }
   | { status: 'error'; message: string; tooLong?: boolean }
 
-export type Side = 'on_device' | 'in_cloud' | 'mock' | 'blocked' | 'failed' | 'test'
+/** "code": a step that ran as code in this tab with no model call, so there is no inferenceSource to report. */
+export type Side = 'on_device' | 'in_cloud' | 'mock' | 'blocked' | 'failed' | 'test' | 'code'
 
 export interface CallRecord {
   id: number
@@ -34,6 +35,19 @@ export interface CallRecord {
   sent?: string
   /** True when the letter was sent sealed by pattern checks only. */
   patternsOnly?: boolean
+}
+
+/**
+ * The receipt row for a finished answer check. It counts as an on-device model
+ * call only when the device model was asked; otherwise code settled every
+ * statement and no model ran.
+ */
+export function checkCall(result: Pick<CheckResult, 'mode' | 'calls' | 'ms'>): Omit<CallRecord, 'id'> {
+  return {
+    label: result.mode === 'model' ? 'Check answer against letter' : 'Check numbers against letter',
+    side: result.calls > 0 ? 'on_device' : 'code',
+    ms: result.ms,
+  }
 }
 
 /** The on-device check of a cloud answer against the letter. */

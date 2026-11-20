@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { detect } from '../seal/detectors'
-import { initialSession, reducer, type Session } from './session'
+import { checkCall, initialSession, reducer, type Session } from './session'
 
 const TEXT = 'Jordan Sample, SSN: 000-12-3456. Respond by December 15, 2026.'
 const start = (): Session =>
@@ -58,5 +58,14 @@ describe('session reducer', () => {
     s = reducer(s, { type: 'letter', letter: { text: 'x', origin: 'paste', title: 't' }, spans: [] })
     expect(s.calls).toHaveLength(2)
     expect(reducer(s, { type: 'reset' }).calls).toEqual([])
+  })
+})
+
+describe('answer check receipt row', () => {
+  it('counts as an on-device call only when the device model was asked', () => {
+    expect(checkCall({ mode: 'model', calls: 2, ms: 900 })).toEqual({ label: 'Check answer against letter', side: 'on_device', ms: 900 })
+    expect(checkCall({ mode: 'model', calls: 0, ms: 3 })).toEqual({ label: 'Check answer against letter', side: 'code', ms: 3 })
+    expect(checkCall({ mode: 'numbers', calls: 0, ms: 1 })).toEqual({ label: 'Check numbers against letter', side: 'code', ms: 1 })
+    expect(checkCall({ mode: 'other-language', calls: 0, ms: 1 }).side).toBe('code')
   })
 })

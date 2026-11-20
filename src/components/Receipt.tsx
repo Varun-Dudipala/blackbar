@@ -7,6 +7,7 @@ const SIDE: Record<string, string> = {
   blocked: 'Stopped, not sent',
   test: 'Test answer, not sent',
   failed: 'Failed',
+  code: 'Code on this device, no model',
 }
 
 export function Receipt({ session, sealedCount, barCount: bars, identifiersSent, onForget }: { session: Session; sealedCount: number; barCount: number; identifiersSent: number; onForget: () => void }) {
@@ -61,7 +62,10 @@ export function Receipt({ session, sealedCount, barCount: bars, identifiersSent,
             </tbody>
           </table>
         )}
-        <p className="fine muted">"Answered by" is read from each Firebase AI Logic response (inferenceSource).</p>
+        <p className="fine muted">
+          "Answered by" is read from each Firebase AI Logic response (inferenceSource).
+          {session.calls.some((c) => c.side === 'code') && ' "No model" means the step ran as code in this tab.'}
+        </p>
       </div>
       <div className="forget">
         <p>The letter is kept in this tab only, and closing the tab forgets it. The one thing saved in this browser is your light or dark setting.</p>

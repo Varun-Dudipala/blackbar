@@ -13,7 +13,7 @@ import { LeakBlockedError, buildPayload, outboundText, runCloud } from '../ai/cl
 import { classifyCloudError } from '../ai/cloudErrors'
 import { getCloudSender } from '../ai/cloudSender'
 import { TASK_TITLE, referralFor, type CloudTask, type LanguageCode } from '../ai/prompts'
-import { initialSession, newId, reducer, type Answer, type Letter, type Session } from './session'
+import { checkCall, initialSession, newId, reducer, type Answer, type Letter, type Session } from './session'
 import { buildTestAnswer } from '../letters/testAnswers'
 import type { DeviceHandle } from './hooks'
 
@@ -123,7 +123,7 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
       const result = await checkAnswer(text, entries, letter, verifier, (done, total) => dispatch({ type: 'answer-check', id, check: { status: 'running', done, total } }), ctl.signal, { language })
       if (ctl.signal.aborted) return
       dispatch({ type: 'answer-check', id, check: { status: 'done', result } })
-      dispatch({ type: 'call', call: { label: result.mode === 'model' ? 'Check answer against letter' : 'Check numbers against letter', side: 'on_device', ms: result.ms } })
+      dispatch({ type: 'call', call: checkCall(result) })
     } catch (e) {
       if (ctl.signal.aborted) {
         dispatch({ type: 'answer-check', id, check: { status: 'cancelled' } })
