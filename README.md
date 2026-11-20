@@ -4,7 +4,7 @@ Blackbar helps people who receive official letters in the United States (USCIS n
 
 **Try it:** https://blackbar-8cba0.web.app (the on-device features need desktop Chrome; see Requirements).
 
-**Demo video (3 minutes):** https://youtu.be/BRWf8HKutsA
+**Demo video (3 minutes):** https://youtu.be/cZWINdaIIVE
 
 ![How Blackbar handles a letter: sealing and the summary run on the device, a leak gate checks every request, Gemini receives sealed text only, and each answer is checked against the full letter and has the real details put back on the device.](docs/architecture.svg)
 
