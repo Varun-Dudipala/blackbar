@@ -22,7 +22,11 @@ Every call goes through the Firebase AI Logic SDK (`firebase/ai`). There is one 
 | Check the answer against the letter | `ONLY_ON_DEVICE`, JSON output | Chrome built-in model, after code checks | Only the device has the full letter, so only the device can compare Gemini's answer with it. Nothing is sent. |
 | Model download | `initializeDeviceModel()` | Chrome | Called only from the Download button. Opening a letter never starts a download. |
 
-Each response's `inferenceSource` is shown in the privacy receipt. On-device results whose `inferenceSource` is not `on_device` are discarded.
+Each response's `inferenceSource` is shown in the privacy receipt. On-device results whose `inferenceSource` is not `on_device` are discarded. An answer check that asked the device model nothing (for example in a Chrome without the model) is listed as "Code on this device, no model".
+
+No feature uses `PREFER_ON_DEVICE` or `PREFER_IN_CLOUD`. With either one, a call that reads the full letter could fall back to the cloud and send it unsealed. The only fallback goes the other way: when Gemini cannot be reached, the reader is offered "Explain on this device".
+
+Under "How it works", the page lists which steps run on the device, which run in the cloud and which are plain code, and says whether this browser has Chrome's model.
 
 ## Privacy model
 
@@ -38,7 +42,7 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
   4. The rest go to the on-device model in batches of up to four, each with the closest window found by code and two more passages. The model sees hidden details only as labels such as "[A-number]". It can only find support, with up to two quotes. A "supported" verdict counts only if a quote is found in the letter (word for word, or one or two sentences holding at least 85% of its words), the quote shares at least 60% of the statement's content words, and the two agree on negation. Anything else is "Could not be matched". When a whole batch comes back unsupported, each statement is asked again on its own.
   5. An answer in another language than the letter cannot be compared word by word. Its statements are marked "Not compared"; their dates, amounts and references are still compared by code and can still be flagged.
   6. "Check a test answer with three planted mistakes", under the cloud buttons for a sample letter, loads a fixed answer written by Blackbar (not by Gemini) with a moved deadline, an invented fee and an invented requirement, and checks it the same way. It makes no request, and the receipt lists it as a test answer.
-  7. Each checked paragraph or list item gets a mark. Pressing it shows the statement, the line in the letter, and "Show in the letter", which scrolls the sealed letter to that line. A summary line under the answer gives the counts, for example "8 of 9 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself." Without the device model, only steps 2 and 3 run and the answer says its wording was not checked.
+  7. Each checked paragraph or list item gets a mark. Pressing it shows the statement, the line in the letter, and "Show in the letter", which scrolls the sealed letter to that line. A summary line under the answer gives the counts, for example "8 of 9 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself." Without the device model, only steps 2 and 3 run. Statements with no date, amount or reference are then not checked, and the summary line gives their count. On a test answer this means the moved deadline and the invented fee are flagged, and the invented requirement is reported as not checked.
 - **Storage.** There are no accounts, no analytics and no server of our own. The letter lives in the tab's memory until the tab is closed or "Forget this letter" is pressed. The only thing written to the browser is the light or dark setting. The service worker caches the app's own files, never letter text.
 
 **Limits.**
