@@ -305,7 +305,7 @@ describe('the test answers without a device model', () => {
 
   it('says how many statements were not checked', () => {
     expect(numbersOnlyNote(0)).toBe(" The wording was not checked, because Chrome's on-device model is not available.")
-    expect(numbersOnlyNote(1)).toBe(" 1 statement has no date, amount or number to compare and was not checked, because Chrome's on-device model is not available. Read it against the letter yourself.")
+    expect(numbersOnlyNote(1)).toBe(" 1 statement has no date, amount or number to compare and was not checked, because Chrome's on-device model is not available.")
     expect(numbersOnlyNote(2)).toContain('2 statements have no date, amount or number to compare and were not checked')
   })
 })

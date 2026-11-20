@@ -199,6 +199,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter) 40px; }
 .device-note { margin-top: 20px; max-width: 760px; }
 .how { margin-top: 28px; max-width: 720px; font-size: 14.5px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
 .how strong { color: var(--text); }
+.where { margin: 12px 0 0; display: grid; gap: 10px; }
+.where dt { color: var(--text); font-weight: 600; font-size: 14px; }
+.where dd { margin: 2px 0 0; font-size: 14px; line-height: 1.5; }
+.where-state { color: var(--text); }
+.how .fine { margin-top: 10px; }
 
 /* ---------- stage rail ---------- */
 .rail {

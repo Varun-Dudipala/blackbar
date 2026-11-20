@@ -17,3 +17,23 @@ export function deviceLabel(s: DeviceStatus): { text: string; tone: 'ok' | 'wait
       return { text: 'No on-device model', tone: 'off' }
   }
 }
+
+/** The state of the on-device row in "Where each step runs", for this browser. */
+export function deviceRowNote(s: DeviceStatus): string {
+  switch (s.state) {
+    case 'ready':
+      return 'Ready in this browser.'
+    case 'checking':
+      return 'Checking this browser.'
+    case 'downloading':
+      return 'Downloading in this browser.'
+    case 'downloadable':
+    case 'stalled':
+      return 'Not downloaded in this browser, so these steps are skipped.'
+    case 'unsupported':
+    case 'unavailable':
+      return 'Not available in this browser, so these steps are skipped.'
+  }
+}
+
+export const DEMO_VIDEO_URL = 'https://youtu.be/cZWINdaIIVE'

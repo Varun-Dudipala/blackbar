@@ -5,6 +5,7 @@ import type { DeviceStatus, ImageInput } from '../ai/device'
 import { transcribeImage } from '../ai/device'
 import { fileToImageInput } from '../lib/image'
 import { fixOcrConfusions, type OcrFix } from '../lib/ocr'
+import { DEMO_VIDEO_URL, deviceRowNote } from './labels'
 import { estimateTokens, ON_DEVICE_TOKEN_LIMIT } from '../lib/chunk'
 import type { SampleLetter } from '../letters/samples'
 import type { Letter } from '../state/session'
@@ -219,6 +220,29 @@ export function BringStage({ downloadNeeded, samples, device, current, onLetter,
           <strong>How it works.</strong> Chrome's built-in model reads the letter on this computer and finds names and reference numbers. Pattern checks catch the standard formats, such as Social Security numbers and A-numbers. If you ask Gemini for help, it gets the sealed text only, and your real details are put back into the answer on this computer.
           {downloadNeeded && " Chrome's model is not downloaded on this computer, so only pattern checks run. Downloading it once (about 2.5 GB) adds name finding, photo reading and the summary."}
         </p>
+        <dl className="where" data-testid="where">
+          <div>
+            <dt>On this computer: Chrome's built-in model</dt>
+            <dd>
+              Finds names and reference numbers, writes the At a glance summary, reads photos, and checks Gemini's answers against the full letter. Firebase AI Logic, <code>ONLY_ON_DEVICE</code>, so these steps never fall back to the cloud. <span className="where-state">{deviceRowNote(device)}</span>
+            </dd>
+          </div>
+          <div>
+            <dt>In Google's cloud: Gemini</dt>
+            <dd>
+              Explains the letter, writes a checklist or drafts a reply, from the sealed text only. Firebase AI Logic, <code>ONLY_IN_CLOUD</code>, with App Check.
+            </dd>
+          </div>
+          <div>
+            <dt>In this tab: code, no model</dt>
+            <dd>Pattern checks, the leak gate before every cloud request, and the date, amount and number check of each answer.</dd>
+          </div>
+        </dl>
+        {device.state !== 'ready' && device.state !== 'checking' && (
+          <p className="fine">
+            The <a href={DEMO_VIDEO_URL}>3-minute demo video</a> shows the on-device steps running.
+          </p>
+        )}
       </aside>
     </div>
   )
