@@ -572,3 +572,7 @@ mark.restored { background: var(--accent-soft); color: inherit; padding: 0 2px; 
 .doc-text .bar.in-quote { box-shadow: 0 0 0 2px #b02d14; }
 .check-mark.is-not_compared { color: var(--paper-muted); border-color: #cfc6b4; }
 .check-item.is-not_compared .check-verdict { color: var(--paper-muted); }
+
+.tag-test { color: #7a4700; border-style: dashed; }
+.answer .tag-test { color: #7a4700; }
+.test-answer { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

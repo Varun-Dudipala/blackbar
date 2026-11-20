@@ -37,7 +37,8 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
   3. Code matches a statement to one or two adjacent letter sentences when they contain at least 70% of its content words (with light stemming, and acronyms such as "OPT" counted when the letter spells them out), and neither side negates what the other says. The threshold was chosen from measurement (see below).
   4. The rest go to the on-device model in batches of up to four, each with the closest window found by code and two more passages. The model sees hidden details only as labels such as "[A-number]". It can only find support, with up to two quotes. A "supported" verdict counts only if a quote is found in the letter (word for word, or one or two sentences holding at least 85% of its words), the quote shares at least 60% of the statement's content words, and the two agree on negation. Anything else is "Could not be matched". When a whole batch comes back unsupported, each statement is asked again on its own.
   5. An answer in another language than the letter cannot be compared word by word. Its statements are marked "Not compared"; their dates, amounts and references are still compared by code and can still be flagged.
-  6. Each checked paragraph or list item gets a mark. Pressing it shows the statement, the line in the letter, and "Show in the letter", which scrolls the sealed letter to that line. A summary line under the answer gives the counts, for example "8 of 9 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself." Without the device model, only steps 2 and 3 run and the answer says its wording was not checked.
+  6. "Check a test answer with three planted mistakes", under the cloud buttons for a sample letter, loads a fixed answer written by Blackbar (not by Gemini) with a moved deadline, an invented fee and an invented requirement, and checks it the same way. It makes no request, and the receipt lists it as a test answer.
+  7. Each checked paragraph or list item gets a mark. Pressing it shows the statement, the line in the letter, and "Show in the letter", which scrolls the sealed letter to that line. A summary line under the answer gives the counts, for example "8 of 9 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself." Without the device model, only steps 2 and 3 run and the answer says its wording was not checked.
 - **Storage.** There are no accounts, no analytics and no server of our own. The letter lives in the tab's memory until the tab is closed or "Forget this letter" is pressed. The only thing written to the browser is the light or dark setting. The service worker caches the app's own files, never letter text.
 
 **Limits.**
@@ -66,7 +67,7 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
   - Download pressed: progress to 100%, then the on-device model checks the letter and adds a bar for a name only it can find;
   - stalled at 0%: after 20 seconds the page says Chrome has not started the download and names disk space as the usual cause, offers a retry, and sending stays possible;
 - the answer check, for every real Gemini answer: it finishes, and no request is made while it runs; "Show in the letter" scrolls the sealed letter to the quoted line;
-- a deliberately wrong answer, through a development-only test double for the cloud model (shown in the app as a mock response): a deadline moved by a week, an invented $85.00 fee and an invented requirement (a letter from an employer). With the network cut during the check, all three were flagged in each of two runs, and none of the three correct statements in that answer was flagged in either run;
+- the test answer button on the USCIS sample: no request is made, the answer is labelled as a test, the receipt lists it as a test answer, and with the network cut during the check the moved deadline, the invented $85.00 fee and the invented requirement are all flagged (the deadline as "Differs from your letter", the other two as "Could not be matched"); one of its three correct statements, "USCIS sent this request for evidence about your Form I-765 application for optional practical training", is also left "Could not be matched";
 - an axe-core accessibility scan of each state in light and dark;
 - the "What leaves this device" panel stays in view beside long answers at desktop width.
 
@@ -79,9 +80,11 @@ Each response's `inferenceSource` is shown in the privacy receipt. On-device res
 | Correct English statements not matched | 10 to 15 of 47 (21% to 32%) | 12 to 14 of 47 (26% to 30%) |
 | Invented statements marked as matched | 9 to 11 of 27 (33% to 41%) | 0 of 27 |
 | Spanish statements | 6 to 7 of 18 marked "Not found" | all 18 "Not compared" |
-| Three planted mistakes | all flagged | all flagged |
+| Three planted mistakes | all flagged | all flagged, also through the test answer button with the network cut |
 
 I read every unmatched English statement by hand: all were correct, so they are false alarms. The earlier version's false passes came from the device model, which called invented statements "supported" with a real but unrelated quote; the quote-overlap and negation rules in step 4 stop that. Gemini made no factual mistake in these answers, so there was no real mistake to catch. The check took 2 to 20 seconds per answer on an Apple M3.
+
+I also tried letting Gemini cite its sources: the sealed letter was sent with numbered lines, Gemini ended each statement with the line numbers it rested on, and the device compared each statement with the cited lines first. On six fresh answers (33 English statements) it left 14 of 33 unmatched in each of three rounds, with no invented statement matched, so it did not lower the unmatched rate and I removed it.
 
 The first version asked the device model for a full verdict per statement (supported, not in the letter, or conflicts). It called some correct statements "conflicts", so only code can flag a statement.
 

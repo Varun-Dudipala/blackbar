@@ -136,6 +136,7 @@ export default function App() {
               onFollowUp={(q, lang) => void bb.followUp(q, lang)}
               onDevice={() => void bb.answerOnDevice()}
               onShowQuote={(q) => setHighlight({ start: q.start, end: q.end, n: Date.now() })}
+              onTestAnswer={session.letter?.sampleId ? bb.testAnswer : undefined}
             />
           ) : (
             <Empty>

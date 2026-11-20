@@ -13,7 +13,8 @@ import { LeakBlockedError, buildPayload, outboundText, runCloud } from '../ai/cl
 import { classifyCloudError } from '../ai/cloudErrors'
 import { getCloudSender } from '../ai/cloudSender'
 import { TASK_TITLE, referralFor, type CloudTask, type LanguageCode } from '../ai/prompts'
-import { initialSession, newId, reducer, type Letter, type Session } from './session'
+import { initialSession, newId, reducer, type Answer, type Letter, type Session } from './session'
+import { buildTestAnswer } from '../letters/testAnswers'
 import type { DeviceHandle } from './hooks'
 
 export interface Blackbar {
@@ -25,6 +26,7 @@ export interface Blackbar {
   ask: (task: Exclude<CloudTask, 'followup'>, language: LanguageCode) => Promise<void>
   followUp: (question: string, language: LanguageCode) => Promise<void>
   answerOnDevice: () => Promise<void>
+  testAnswer: () => void
   dispatch: React.Dispatch<Parameters<typeof reducer>[1]>
   /** Identifiers that reached the cloud across all sends. Always 0 unless the gate failed. */
   identifiersSent: number
@@ -146,8 +148,9 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
         entries = q.entries
         questionSent = q.sealedText
       }
-      const previous = [...answersRef.current].reverse().find((a) => a.status === 'done' && a.origin !== 'device')
-      const isFirstAnswer = !answersRef.current.some((a) => a.status === 'done' && a.origin !== 'device')
+      const fromCloud = (a: Answer) => a.status === 'done' && a.origin !== 'device' && a.origin !== 'test'
+      const previous = [...answersRef.current].reverse().find(fromCloud)
+      const isFirstAnswer = !answersRef.current.some(fromCloud)
       const payload = buildPayload({
         task,
         sealedLetter: current.sealedText,
@@ -227,6 +230,20 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
     }
   }, [])
 
+  /** Loads the fixed test answer for the open sample and checks it on the device. Nothing is sent. */
+  const testAnswer = useCallback(() => {
+    const letter = session.letter
+    const current = sealedRef.current
+    if (!letter?.sampleId || !current) return
+    const t = buildTestAnswer(letter.sampleId as 'rfe' | 'rent' | 'bursar')
+    const id = newId()
+    checkCtl.current?.abort()
+    dispatch({ type: 'answer-start', answer: { id, task: 'explain', language: 'en', origin: 'test', planted: t.planted } })
+    dispatch({ type: 'answer-end', id, patch: { text: t.text } })
+    dispatch({ type: 'call', call: { label: 'Test answer (three planted mistakes)', side: 'test' } })
+    void runCheck(id, t.text, current.entries, 'en')
+  }, [session.letter, runCheck])
+
   const identifiersSent = useMemo(() => {
     const entries = sealed?.entries ?? []
     const leaked = new Set<string>()
@@ -234,5 +251,5 @@ export function useBlackbar(device: DeviceHandle, online: boolean): Blackbar {
     return leaked.size
   }, [sealed, session.calls])
 
-  return { session, sealed, startLetter, rescan, ask, followUp, answerOnDevice, dispatch, identifiersSent }
+  return { session, sealed, startLetter, rescan, ask, followUp, answerOnDevice, testAnswer, dispatch, identifiersSent }
 }

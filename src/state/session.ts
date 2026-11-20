@@ -21,7 +21,7 @@ export type Task<T> =
   | { status: 'done'; value: T }
   | { status: 'error'; message: string; tooLong?: boolean }
 
-export type Side = 'on_device' | 'in_cloud' | 'mock' | 'blocked' | 'failed'
+export type Side = 'on_device' | 'in_cloud' | 'mock' | 'blocked' | 'failed' | 'test'
 
 export interface CallRecord {
   id: number
@@ -51,7 +51,9 @@ export interface Answer {
   questionSent?: string
   text: string
   status: 'streaming' | 'done' | 'error' | 'blocked'
-  origin: 'cloud' | 'mock' | 'device'
+  /** "test": a fixed answer with planted mistakes, written by Blackbar, never sent. */
+  origin: 'cloud' | 'mock' | 'device' | 'test'
+  planted?: string[]
   inferenceSource?: string
   ms?: number
   firstTokenMs?: number | null

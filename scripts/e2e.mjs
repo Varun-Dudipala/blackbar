@@ -711,38 +711,27 @@ async function phaseCloud() {
   await axe(page, '04-offline', out.axe)
   await ctx.setOffline(false)
 
-  // (e) A deliberately wrong answer through the dev-only cloud test double:
-  // a changed deadline, an invented fee and an invented requirement. The check
-  // must flag each one. The network is cut while the check runs.
+  // (e) The visible test answer: a fixed answer with three planted mistakes
+  // (a deadline moved by a week, an invented fee, an invented requirement),
+  // loaded from the button anyone can press. No request is made; the network
+  // is cut while the check runs.
   {
     const realDeadline = plusDays(SAMPLES.rfe.days).long
     const wrongDeadline = plusDays(SAMPLES.rfe.days + 7).long
-    const answer = [
-      '### What this letter is',
-      'USCIS sent this request for evidence about your Form I-765 application for optional practical training.',
-      '',
-      '### What it asks for',
-      '- A copy of your Form I-20 endorsed by your Designated School Official within the last 30 days.',
-      '- Two passport-style photographs with your name and A-Number written lightly on the back.',
-      '- A letter from your employer confirming your job offer and salary.',
-      '- A processing fee of $85.00, paid by money order.',
-      '',
-      '### Deadline',
-      `Your response must be received by ${wrongDeadline}.`,
-    ].join('\n')
     const p3 = await ctx.newPage()
-    await p3.addInitScript((answer) => {
-      window.__blackbarCloudSeam = { answer }
-    }, answer)
     await p3.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
     await p3.goto(base)
     await waitReady(p3)
     await p3.click('[data-sample="rfe"]')
     await p3.waitForSelector(`.paper[aria-label="${SAMPLES.rfe.title}, sealed"]`)
     await p3.waitForFunction(() => document.querySelector('[data-scan]')?.dataset.scan === 'done', null, { timeout: 90000 })
-    await p3.click('[data-task="explain"]')
+    const before = external.length
+    await p3.click('[data-testid="test-answer"]')
     await ctx.setOffline(true)
     const inj = await readCheck(p3, 1, external)
+    inj.requestsForTestAnswer = external.length - before
+    inj.badge = await p3.$eval('[data-testid="answer"] .tag', (e) => e.textContent)
+    inj.receiptRow = await p3.$eval('.receipt-calls tr[data-side="test"]', (e) => e.textContent).catch(() => null)
     inj.offlineDuringCheck = await p3.evaluate(() => !navigator.onLine)
     await ctx.setOffline(false)
     const flaggedText = inj.flagged.map((f) => f.statement).join(' | ')
@@ -753,11 +742,11 @@ async function phaseCloud() {
     }
     inj.correctOnesFlagged = inj.flagged.filter((f) => /Form I-20|passport-style|Form I-765/.test(f.statement)).map((f) => f.statement)
     inj.realDeadline = realDeadline
-    inj.pass = Object.values(inj.caught).every(Boolean) && inj.requestsDuringCheck === 0 && inj.state === 'done'
+    inj.pass = Object.values(inj.caught).every(Boolean) && inj.requestsDuringCheck === 0 && inj.requestsForTestAnswer === 0 && inj.state === 'done' && /Test answer/.test(inj.badge) && !!inj.receiptRow
     await p3.evaluate(() => document.querySelector('[data-testid="answer"] .check-mark.is-conflicts, [data-testid="answer"] .check-mark.is-not_found')?.scrollIntoView({ block: 'center' }))
-    await p3.screenshot({ path: path.join(SCREENS, '09-check-test-double-wrong-answer-light-1440.png') })
-    out.injected = inj
-    say('injected wrong answer', JSON.stringify({ caught: inj.caught, pass: inj.pass, requests: inj.requestsDuringCheck, offline: inj.offlineDuringCheck, correctFlagged: inj.correctOnesFlagged.length, waitedMs: inj.waitedMs }))
+    await p3.screenshot({ path: path.join(SCREENS, '09-test-answer-planted-mistakes-light-1440.png') })
+    out.testAnswer = inj
+    say('test answer with planted mistakes', JSON.stringify({ caught: inj.caught, pass: inj.pass, requests: inj.requestsDuringCheck, offline: inj.offlineDuringCheck, correctFlagged: inj.correctOnesFlagged.length, waitedMs: inj.waitedMs }))
     await p3.close()
   }
 

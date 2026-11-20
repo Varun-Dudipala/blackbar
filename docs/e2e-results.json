@@ -1,25 +1,25 @@
 {
   "device": {
-    "when": "2026-11-19T23:27:14.967Z",
+    "when": "2026-11-19T23:57:07.322Z",
     "chip": "On-device model ready",
     "samples": {
       "rfe": {
         "scan": {
           "status": "done",
-          "ms": 8338
+          "ms": 7936
         },
         "glance": {
           "status": "done",
-          "ms": 13896
+          "ms": 13025
         },
-        "wallMs": 14176,
+        "wallMs": 13162,
         "found": "9/9",
         "missed": [],
         "bars": 13,
         "modelBars": [
           "Riley Sample"
         ],
-        "glanceType": "Request for Evidence",
+        "glanceType": "Request for evidence",
         "glanceError": null,
         "expectedDeadline": "2026-12-16",
         "glanceDeadlines": [
@@ -32,18 +32,18 @@
       "rent": {
         "scan": {
           "status": "done",
-          "ms": 5260
+          "ms": 4983
         },
         "glance": {
           "status": "done",
-          "ms": 11024
+          "ms": 10375
         },
-        "wallMs": 11067,
+        "wallMs": 10453,
         "found": "7/7",
         "missed": [],
         "bars": 11,
         "modelBars": [],
-        "glanceType": "Notice of past due rent",
+        "glanceType": "Notice of Past Due Rent and Late Fee",
         "glanceError": null,
         "expectedDeadline": "2026-11-24",
         "glanceDeadlines": [
@@ -56,18 +56,18 @@
       "bursar": {
         "scan": {
           "status": "done",
-          "ms": 3940
+          "ms": 5594
         },
         "glance": {
           "status": "done",
-          "ms": 9804
+          "ms": 11394
         },
-        "wallMs": 9843,
+        "wallMs": 11467,
         "found": "5/5",
         "missed": [],
         "bars": 10,
         "modelBars": [],
-        "glanceType": "Insurance charge notification",
+        "glanceType": "Charge notice for student health insurance",
         "glanceError": null,
         "expectedDeadline": "2026-12-01",
         "glanceDeadlines": [
@@ -86,13 +86,13 @@
         "rfe": {
           "scan": {
             "status": "done",
-            "ms": 5154
+            "ms": 4881
           },
           "glance": {
             "status": "done",
-            "ms": 10008
+            "ms": 10065
           },
-          "wallMs": 10053,
+          "wallMs": 10145,
           "found": "9/9",
           "missed": [],
           "glanceDeadlines": [
@@ -104,13 +104,13 @@
         "rent": {
           "scan": {
             "status": "done",
-            "ms": 2524
+            "ms": 4376
           },
           "glance": {
             "status": "done",
-            "ms": 7778
+            "ms": 9464
           },
-          "wallMs": 7820,
+          "wallMs": 9546,
           "found": "7/7",
           "missed": [],
           "glanceDeadlines": [
@@ -122,13 +122,13 @@
         "bursar": {
           "scan": {
             "status": "done",
-            "ms": 3033
+            "ms": 4167
           },
           "glance": {
             "status": "done",
-            "ms": 8693
+            "ms": 9767
           },
-          "wallMs": 8734,
+          "wallMs": 9849,
           "found": "5/5",
           "missed": [],
           "glanceDeadlines": [
@@ -144,7 +144,7 @@
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "5.1 s"
+          "time": "4.8 s"
         },
         {
           "side": "on_device",
@@ -154,34 +154,36 @@
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "2.5 s"
+          "time": "4.3 s"
         },
         {
           "side": "on_device",
           "label": "At a glance",
-          "time": "7.7 s"
+          "time": "9.4 s"
         },
         {
           "side": "on_device",
           "label": "Find identifiers",
-          "time": "2.9 s"
+          "time": "4.1 s"
         },
         {
           "side": "on_device",
           "label": "At a glance",
-          "time": "8.6 s"
+          "time": "9.8 s"
         }
       ]
     },
     "image": {
-      "transcribeMs": 18401,
-      "idsVerbatimInTranscript": "9/9",
-      "missingFromTranscript": [],
+      "transcribeMs": 17941,
+      "idsVerbatimInTranscript": "8/9",
+      "missingFromTranscript": [
+        "jordan.sample@example.com"
+      ],
       "fixes": [],
       "afterSeal": {
         "found": "8/9",
         "missed": [
-          "Riley Sample"
+          "jordan.sample@example.com (not in text)"
         ],
         "glanceDeadlines": [
           "2026-12-16"
@@ -193,32 +195,32 @@
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "8.5 s"
+        "time": "8.0 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "14.1 s"
+        "time": "13.0 s"
       },
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "5.2 s"
+        "time": "5.0 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "10.9 s"
+        "time": "10.3 s"
       },
       {
         "side": "on_device",
         "label": "Find identifiers",
-        "time": "3.9 s"
+        "time": "5.5 s"
       },
       {
         "side": "on_device",
         "label": "At a glance",
-        "time": "9.8 s"
+        "time": "11.4 s"
       }
     ],
     "allOnDevice": true,
@@ -228,58 +230,58 @@
   },
   "cloud": {
     "mockCloud": false,
-    "when": "2026-11-19T23:31:00.396Z",
+    "when": "2026-11-19T23:58:42.330Z",
     "answers": {
       "rfeExplain": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1856,
-        "firstTokenMs": 1197,
-        "chars": 1253,
-        "placeholders": 4,
+        "ms": 7147,
+        "firstTokenMs": 6569,
+        "chars": 1245,
+        "placeholders": 5,
         "error": null,
-        "text": "What this letter is and who sent itThis is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for NAME 1 under receipt number RECEIPT 1.Why you received itUSCIS is reviewing your application for optional practical training and needs more information because the current evidence is not sufficient to establish eligibility.What it asks forYou must submit:A copy of your Form I-20 endorsed by your Designated School Official within the last 30 days, showing the post-completion OPT recommendation.A copy of your passport biographic page.Two passport-style photographs with your name and A-Number (A NUMBER 1) written lightly on the back.A copy of your marriage certificate for your F-2 dependent spouse, NAME 2.Send this notice along with your response to the address listed in the letter.DeadlineYour response must be received by December 16, 2026.What happens if you do nothingIf USCIS does not receive the requested evidence by December 16, 2026, they will decide your application based on the existing record, and it may be denied.Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+        "text": "What This Letter Is and Who Sent ItThis is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for NAME 1 (Receipt Number RECEIPT 1, A-Number A NUMBER 1).Why You Received ItUSCIS is reviewing your post-completion Optional Practical Training (OPT) application and has determined that the currently submitted evidence is not sufficient to establish your eligibility.What It Asks ForYou must submit the following items together with this notice:A copy of your Form I-20 endorsed by your Designated School Official within the last 30 days showing the post-completion OPT recommendation.A copy of your passport biographic page.Two passport-style photographs with your name and A NUMBER 1 written lightly on the back.A copy of your marriage certificate for your F-2 dependent spouse, NAME 2.DeadlineYour response must be received by December 16, 2026.What Happens If You Do NothingIf USCIS does not receive the requested evidence by the deadline, they will decide your application based on the existing record, and it may be denied.Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
       },
       "rfeFollowUp": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1457,
-        "firstTokenMs": 813,
-        "chars": 297,
+        "ms": 1661,
+        "firstTokenMs": 1526,
+        "chars": 213,
         "placeholders": 0,
         "error": null,
-        "text": "The letter does not state whether the two passport-style photographs can be uploaded or if they must be mailed.The letter instructs you to send this notice with your response to the address above, but it does not provide specific instructions on the physical submission method for the photographs.",
+        "text": "The letter does not state whether the two passport-style photographs can be uploaded or if they must be mailed.It only states that you must send the notice with your response to the address provided in the letter.",
         "questionSent": "Does NAME 1 have to mail the two passport photos, or can they be uploaded?"
       },
       "rentChecklistEs": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 4113,
-        "firstTokenMs": 1372,
-        "chars": 1038,
-        "placeholders": 6,
+        "ms": 1604,
+        "firstTokenMs": 1010,
+        "chars": 932,
+        "placeholders": 5,
         "error": null,
-        "text": "El pago total de $1,525.00 debe realizarse a más tardar el 24 de noviembre de 2026.Not comparedReúne el recibo de renta del mes actual y cualquier comprobante de pago anterior si ya lo pagaste.Not comparedPrepara el pago por $1,525.00 (que incluye la renta de $1,450.00 y el cargo por tardanza de $75.00 bajo la referencia ACCOUNT 2).Not comparedRealiza el pago a través del portal de residentes, mediante giro postal (money order) en la oficina, o con un cheque pagadero a Maple Court Apartments antes de la fecha límite.Not comparedSi vas a pagar con cheque, escribe tu Tenant ID ACCOUNT 1 en el mismo.Not comparedSi tienes problemas para pagar, comunícate con la oficina al PHONE 1 antes de la fecha límite para hablar sobre un plan de pago.Not comparedVerifica si tu teléfono PHONE 2 o tu correo electrónico EMAIL 1 han cambiado y avísales si es necesario.Not comparedAntes de enviar:Revisa que el monto total de $1,525.00 sea exacto.Not comparedConfirma que tu Tenant ID ACCOUNT 1 esté incluido en el pago si usas cheque.Not compared"
+        "text": "La fecha límite para pagar o contactar a la oficina es el 24 de noviembre de 2026.Not comparedReunir la cantidad total de $1,525.00 (que incluye la renta de $1,450.00 y el cargo por pago tardío de $75.00 bajo la referencia de libro mayor ACCOUNT 2).Not comparedDecidir el método de pago: el portal de residentes, un giro postal (money order) en la oficina, o un cheque a nombre de Maple Court Apartments (anotando el Tenant ID ACCOUNT 1 en el cheque).Not comparedSi tiene problemas para pagar, comunicarse con la oficina antes de la fecha límite para hablar sobre un plan de pago.Not comparedInformar a la oficina si sus datos de contacto han cambiado (teléfono PHONE 2 o correo electrónico EMAIL 1).Not comparedAntes de enviar, verifique:Not comparedQue el pago total de $1,525.00 se realice a más tardar el 24 de noviembre de 2026.Not comparedQue su Tenant ID ACCOUNT 1 esté escrito en el cheque si paga por ese medio.Not compared"
       },
       "bursarDraft": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 2898,
-        "firstTokenMs": 2449,
-        "chars": 849,
-        "placeholders": 5,
+        "ms": 1197,
+        "firstTokenMs": 753,
+        "chars": 853,
+        "placeholders": 7,
         "error": null,
-        "text": "Subject: Registration hold and health insurance charge - NAME 1 (Student ID: ACCOUNT 1)Dear Office of Student Accounts and Student Health Insurance,I am writing regarding the registration hold placed on my student account for the spring term charge of $1,286.00.I am submitting the online waiver form with my current policy details under Member ID: ACCOUNT 2. Attached is [describe the document you are attaching], which includes my insurance policy documents.Could you please confirm whether my waiver submission has been received and how long the review process typically takes before the registration hold is removed?Thank you for your assistance.Sincerely,⟦NAME_1 Student ID: ACCOUNT 1 SEVIS ID: SEVIS 1Note: Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
+        "text": "Subject: Registration hold / Spring term health insurance - NAME 1 (Student ID: ACCOUNT 1)Dear Office of Student Accounts,I am writing regarding the registration hold placed on my student account (Student ID: ACCOUNT 1, SEVIS ID: SEVIS 1) for the spring term health insurance charge of $1,286.00.I am submitting the online waiver form using my current policy details, including Member ID: ACCOUNT 2. Please find attached [describe the insurance policy documents you are attaching].Could you please confirm whether my waiver submission has been received and how long the review process typically takes before the registration hold is removed?Thank you for your assistance.Sincerely,NAME 1 ACCOUNT 1Note to the reader: Please check anything about your immigration status with your school's international student office or a qualified immigration attorney."
       },
       "offlineOnDevice": {
         "status": "done",
         "inferenceSource": "on_device",
-        "ms": 3631,
+        "ms": 4890,
         "firstTokenMs": null,
-        "chars": 608,
+        "chars": 871,
         "placeholders": 0,
         "error": null,
-        "text": "This letter is from Example State University to you regarding your student health insurance. It comes from the Office of Student Accounts.Here is what you need to do:Option 1 (Cancel insurance): If you already have insurance, submit an online form with your policy details by December 1, 2026.Option 2 (Keep insurance): Pay the $1,286.00 charge or sign up for a payment plan by December 9, 2026.If you do nothing, you will be unable to register for spring classes.If this letter concerns immigration status or a legal dispute, please contact the school's international student office or a qualified attorney."
+        "text": "This letter is from the Example State University's Student Accounts office and it is about a charge for your university health insurance.Here is what you need to do:Option 1: If you have health insurance that covers the university's needs, you must submit an online waiver form with your policy details by December 1, 2026.Option 2: If you do not want to waive the plan, you must pay the charge of $1,286.00 or sign up for a payment plan by December 9, 2026.If you do nothing, the hold on your registration will remain, and you will not be able to register for spring classes. You should speak to your international student advisor if you are worried about your enrollment.Disclaimer: This is an explanation, not legal advice. If this letter concerns immigration status or a legal dispute, please contact the school's international student office or a qualified attorney."
       }
     },
     "axe": {
@@ -314,12 +316,12 @@
       "answer": {
         "status": "done",
         "inferenceSource": "in_cloud",
-        "ms": 1450,
-        "firstTokenMs": 886,
-        "chars": 1215,
+        "ms": 6505,
+        "firstTokenMs": 5966,
+        "chars": 1124,
         "placeholders": 2,
         "error": null,
-        "text": "OverviewThis letter is from the Office of Student Accounts and Student Health Insurance at Example State University. It informs NAME 1 about a registration hold due to an unpaid health insurance charge.Why You Received ItInternational students are automatically enrolled in the university health insu"
+        "text": "About the LetterThis letter is from the Office of Student Accounts and Student Health Insurance at Example State University, sent to NAME 1.Why You Received ItAs an international student, you were automatically enrolled in the university's Student Health Insurance Plan. A spring term charge of $1,28"
       },
       "answerNotesPatternsOnly": true,
       "downloadsStartedAfterSend": 0,
@@ -348,7 +350,7 @@
       "pass": true
     },
     "stalled": {
-      "stalledAfterMs": 20018,
+      "stalledAfterMs": 20024,
       "chip": "Model download has not startedTry again",
       "scanLine": "9 details hidden (10 bars) on this device. 10 bars from pattern checks.Only pattern checks ran. Names and unusual reference numbers were not looked for. Chrome has not started the model download. The usual cause is free disk space: Chrome needs about 22 GB free to install the model. Try the download again",
       "sendEnabled": true,
@@ -377,24 +379,24 @@
         "notFound": 3,
         "conflicts": 0,
         "total": 9,
-        "waitedMs": 7482,
+        "waitedMs": 4433,
         "requestsDuringCheck": 0,
         "flagged": [
           {
             "verdict": "not_found",
-            "statement": "This is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for NAME 1 under receipt number RECEIPT 1.",
+            "statement": "This is a Request for Evidence (RFE) sent by the U.S. Citizenship and Immigration Services (USCIS) Potomac Service Center regarding Form I-765 for NAME 1 (Receipt Number RECEIPT 1, A-Number A NUMBER 1).",
             "quote": null,
             "note": "No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself."
           },
           {
             "verdict": "not_found",
-            "statement": "USCIS is reviewing your application for optional practical training and needs more information because the current evidence is not sufficient to establish eligibility.",
+            "statement": "USCIS is reviewing your post-completion Optional Practical Training (OPT) application and has determined that the currently submitted evidence is not sufficient to establish your eligibility.",
             "quote": null,
             "note": "No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself."
           },
           {
             "verdict": "not_found",
-            "statement": "Send this notice along with your response to the address listed in the letter.",
+            "statement": "You must submit the following items together with this notice:",
             "quote": null,
             "note": "No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself."
           }
@@ -407,12 +409,12 @@
         "notFound": 1,
         "conflicts": 0,
         "total": 1,
-        "waitedMs": 1920,
+        "waitedMs": 2078,
         "requestsDuringCheck": 0,
         "flagged": [
           {
             "verdict": "not_found",
-            "statement": "The letter instructs you to send this notice with your response to the address above, but it does not provide specific instructions on the physical submission method for the photographs.",
+            "statement": "It only states that you must send the notice with your response to the address provided in the letter.",
             "quote": null,
             "note": "No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself."
           }
@@ -420,65 +422,59 @@
       },
       "rentChecklistEs": {
         "state": "done",
-        "text": "Checked on this device: this answer is in Spanish, so its wording was not compared with the letter. Dates, amounts and references were compared in all 9 statements; 9 match the letter.",
+        "text": "Checked on this device: this answer is in Spanish, so its wording was not compared with the letter. Dates, amounts and references were compared in all 8 statements; 8 match the letter.",
         "supported": 0,
         "notFound": 0,
         "conflicts": 0,
-        "total": 9,
+        "total": 8,
         "waitedMs": 1,
         "requestsDuringCheck": 0,
         "flagged": [
           {
             "verdict": "not_compared",
-            "statement": "El pago total de $1,525.00 debe realizarse a más tardar el 24 de noviembre de 2026.",
+            "statement": "La fecha límite para pagar o contactar a la oficina es el 24 de noviembre de 2026.",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Reúne el recibo de renta del mes actual y cualquier comprobante de pago anterior si ya lo pagaste.",
+            "statement": "Reunir la cantidad total de $1,525.00 (que incluye la renta de $1,450.00 y el cargo por pago tardío de $75.00 bajo la referencia de libro mayor ACCOUNT 2).",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Prepara el pago por $1,525.00 (que incluye la renta de $1,450.00 y el cargo por tardanza de $75.00 bajo la referencia ACCOUNT 2).",
+            "statement": "Decidir el método de pago: el portal de residentes, un giro postal (money order) en la oficina, o un cheque a nombre de Maple Court Apartments (anotando el Tenant ID ACCOUNT 1 en el cheque).",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Realiza el pago a través del portal de residentes, mediante giro postal (money order) en la oficina, o con un cheque pagadero a Maple Court Apartments antes de la fecha límite.",
+            "statement": "Si tiene problemas para pagar, comunicarse con la oficina antes de la fecha límite para hablar sobre un plan de pago.",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Si vas a pagar con cheque, escribe tu Tenant ID ACCOUNT 1 en el mismo.",
+            "statement": "Informar a la oficina si sus datos de contacto han cambiado (teléfono PHONE 2 o correo electrónico EMAIL 1).",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Si tienes problemas para pagar, comunícate con la oficina al PHONE 1 antes de la fecha límite para hablar sobre un plan de pago.",
+            "statement": "Antes de enviar, verifique:",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Verifica si tu teléfono PHONE 2 o tu correo electrónico EMAIL 1 han cambiado y avísales si es necesario.",
+            "statement": "Que el pago total de $1,525.00 se realice a más tardar el 24 de noviembre de 2026.",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           },
           {
             "verdict": "not_compared",
-            "statement": "Revisa que el monto total de $1,525.00 sea exacto.",
-            "quote": null,
-            "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
-          },
-          {
-            "verdict": "not_compared",
-            "statement": "Confirma que tu Tenant ID ACCOUNT 1 esté incluido en el pago si usas cheque.",
+            "statement": "Que su Tenant ID ACCOUNT 1 esté escrito en el cheque si paga por ese medio.",
             "quote": null,
             "note": "The answer is in another language than the letter, so its wording was not compared. Its dates, amounts and references, if any, match the letter."
           }
@@ -486,14 +482,21 @@
       },
       "bursarDraft": {
         "state": "done",
-        "text": "Checked on this device: 2 of 2 statements matched to lines in your letter.",
-        "supported": 2,
-        "notFound": 0,
+        "text": "Checked on this device: 1 of 2 statements matched to lines in your letter. 1 could not be matched; read it against the letter yourself.",
+        "supported": 1,
+        "notFound": 1,
         "conflicts": 0,
         "total": 2,
-        "waitedMs": 4,
+        "waitedMs": 2470,
         "requestsDuringCheck": 0,
-        "flagged": []
+        "flagged": [
+          {
+            "verdict": "not_found",
+            "statement": "I am writing regarding the registration hold placed on my student account (Student ID: ACCOUNT 1, SEVIS ID: SEVIS 1) for the spring term health insurance charge of $1,286.00.",
+            "quote": null,
+            "note": "No line of the letter could be matched to this. It may be general advice, or worded differently from the letter. Read it against the letter yourself."
+          }
+        ]
       }
     },
     "selection": {
@@ -516,7 +519,7 @@
       "outboundTop": 140,
       "outboundBottom": 733,
       "receiptTop": 1136,
-      "scrolled": 4567,
+      "scrolled": 4585,
       "position": "sticky",
       "inView": true,
       "clearOfReceipt": true,
@@ -528,14 +531,14 @@
       "rentChecklistEs": 0,
       "bursarDraft": 1
     },
-    "injected": {
+    "testAnswer": {
       "state": "done",
       "text": "Checked on this device: 2 of 6 statements matched to lines in your letter. 1 differs from the letter. 3 could not be matched; read them against the letter yourself. Press a mark to see what the letter says.",
       "supported": 2,
       "notFound": 3,
       "conflicts": 1,
       "total": 6,
-      "waitedMs": 9350,
+      "waitedMs": 8117,
       "requestsDuringCheck": 0,
       "flagged": [
         {
@@ -563,6 +566,9 @@
           "note": "December 23, 2026 is not in the letter."
         }
       ],
+      "requestsForTestAnswer": 0,
+      "badge": "Test answer, not from Gemini",
+      "receiptRow": "Test answer (three planted mistakes)Test answer, not sent—",
       "offlineDuringCheck": true,
       "caught": {
         "changedDeadline": true,
@@ -596,7 +602,7 @@
       {
         "host": "firebasevertexai.googleapis.com",
         "path": "/v1beta/projects/blackbar-8cba0/models/gemini-3.5-flash-lite:streamGenerateContent",
-        "bytes": 4609,
+        "bytes": 4602,
         "identifiersInBody": []
       },
       {
@@ -613,6 +619,8 @@
       }
     ],
     "leakedIdentifiers": [],
-    "consoleErrors": []
+    "consoleErrors": [
+      "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+    ]
   }
 }

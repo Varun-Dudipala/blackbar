@@ -5,6 +5,7 @@ const SIDE: Record<string, string> = {
   in_cloud: 'Gemini, in the cloud',
   ...(import.meta.env.DEV ? { mock: 'Mock, no request made' } : {}),
   blocked: 'Stopped, not sent',
+  test: 'Test answer, not sent',
   failed: 'Failed',
 }
 

@@ -23,6 +23,8 @@ interface Props {
   onFollowUp: (question: string, language: LanguageCode) => void
   onDevice: () => void
   onShowQuote: (q: Quote) => void
+  /** Set when the open letter is a sample: loads its test answer. */
+  onTestAnswer?: () => void
 }
 
 const ACTIONS: { task: Exclude<CloudTask, 'followup'>; label: string; note: string }[] = [
@@ -42,6 +44,7 @@ function SideBadge({ a }: { a: Answer }) {
     )
   }
   if (a.origin === 'device') return <span className="tag tag-device">On this device</span>
+  if (a.origin === 'test') return <span className="tag tag-test">Test answer, not from Gemini</span>
   if (a.inferenceSource === 'in_cloud') return <span className="tag tag-cloud">Gemini, in the cloud</span>
   return <span className="tag tag-cloud">Cloud</span>
 }
@@ -54,7 +57,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online, onShowQuot
     const st = marks.get(key)
     return st ? <CheckMark statements={st} open={openKey === key} onToggle={() => setOpenKey(openKey === key ? null : key)} onShowQuote={onShowQuote} reveal={reveal} /> : null
   }
-  const title = a.task === 'device' ? 'Plain explanation' : TASK_TITLE[a.task]
+  const title = a.origin === 'test' ? 'Test answer with planted mistakes' : a.task === 'device' ? 'Plain explanation' : TASK_TITLE[a.task]
   const copy = async () => {
     let text = a.text
     if (reveal.show) for (const e of reveal.entries) text = text.split(e.placeholder).join(e.value)
@@ -137,7 +140,9 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online, onShowQuot
       {a.status === 'done' && (
         <footer className="answer-foot">
           <span className="fine muted">
-            {a.origin === 'device'
+            {a.origin === 'test'
+              ? `Written by Blackbar, not by Gemini, with three mistakes planted on purpose: ${(a.planted ?? []).join('; ')}. Nothing was sent.`
+              : a.origin === 'device'
               ? `Written by Chrome's built-in model in ${((a.ms ?? 0) / 1000).toFixed(1)} s from the full letter. Nothing was sent.`
               : import.meta.env.DEV && a.origin === 'mock'
                 ? 'Development stand-in. No request was made.'
@@ -154,7 +159,7 @@ function AnswerCard({ a, reveal, onDevice, onRetry, deviceOk, online, onShowQuot
   )
 }
 
-export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scanning, onAsk, onFollowUp, onDevice, onShowQuote }: Props) {
+export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scanning, onAsk, onFollowUp, onDevice, onShowQuote, onTestAnswer }: Props) {
   const [language, setLanguage] = useState<LanguageCode>('en')
   const [show, setShow] = useState(false)
   const [showInstructions, setShowInstructions] = useState(false)
@@ -163,7 +168,7 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
   const preview = useMemo(() => (question.trim() ? sealQuestion(question, sealed.entries) : null), [question, sealed.entries])
   const busy = answers.some((a) => a.status === 'streaming') || scanning
   const reveal: Reveal = { show, entries: preview?.entries ?? sealed.entries }
-  const hasCloudAnswer = answers.some((a) => a.status === 'done' && a.origin !== 'device')
+  const hasCloudAnswer = answers.some((a) => a.status === 'done' && a.origin !== 'device' && a.origin !== 'test')
 
   return (
     <div className="ask-grid">
@@ -241,6 +246,14 @@ export function AskStage({ sealed, answers, online, deviceOk, patternOnly, scann
             </button>
           ))}
         </div>
+        {onTestAnswer && (
+          <div className="test-answer">
+            <button type="button" className="btn btn-quiet btn-small" onClick={onTestAnswer} disabled={busy} data-testid="test-answer">
+              Check a test answer with three planted mistakes
+            </button>
+            <span className="fine muted">A fixed answer written for this sample, not from Gemini. Nothing is sent.</span>
+          </div>
+        )}
         <p className="fine legal">Blackbar explains letters and does not give legal advice. For questions about your immigration status, ask your school's international student office or an immigration attorney.</p>
 
         {answers.length > 0 && (
