@@ -240,7 +240,7 @@ export function BringStage({ downloadNeeded, samples, device, current, onLetter,
         </dl>
         {device.state !== 'ready' && device.state !== 'checking' && (
           <p className="fine">
-            The <a href={DEMO_VIDEO_URL}>3-minute demo video</a> shows the on-device steps running.
+            The <a className="link" href={DEMO_VIDEO_URL} target="_blank" rel="noopener noreferrer">3-minute demo video</a> shows the on-device steps running.
           </p>
         )}
       </aside>
