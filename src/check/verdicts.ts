@@ -177,6 +177,17 @@ export function summaryLine(s: CheckSummary, mode: 'model' | 'numbers' | 'other-
 }
 
 /**
+ * The note under a code-only check: how many statements were not checked at
+ * all, so a wrong statement without a date, amount or number is not read as
+ * passed.
+ */
+export function numbersOnlyNote(skipped: number): string {
+  if (skipped <= 0) return " The wording was not checked, because Chrome's on-device model is not available."
+  const n = skipped === 1 ? '1 statement has' : `${skipped} statements have`
+  return ` ${n} no date, amount or number to compare and ${skipped === 1 ? 'was' : 'were'} not checked, because Chrome's on-device model is not available. Read ${skipped === 1 ? 'it' : 'them'} against the letter yourself.`
+}
+
+/**
  * Without the device model, code alone checks: dates, amounts and references,
  * and statements that repeat a letter sentence. Statements it cannot judge
  * are left out of the count.

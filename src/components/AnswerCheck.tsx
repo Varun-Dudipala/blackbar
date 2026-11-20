@@ -4,7 +4,7 @@
 
 import type { ReactNode } from 'react'
 import type { AnswerCheck } from '../state/session'
-import { blockVerdict, summarise, summaryLine, type CheckedStatement, type Quote, type Verdict } from '../check/verdicts'
+import { blockVerdict, numbersOnlyNote, summarise, summaryLine, type CheckedStatement, type Quote, type Verdict } from '../check/verdicts'
 import { maskKnown } from '../seal/question'
 import { WithBars, type Reveal } from './Inline'
 
@@ -94,7 +94,7 @@ export function CheckLine({ check, deviceOk, languageName }: { check: AnswerChec
   return (
     <p className={`check-line${flagged ? ' is-flag' : ''}`} role="status" data-check="done" data-supported={s.supported} data-not-found={s.notFound} data-conflicts={s.conflicts} data-total={s.total}>
       {summaryLine(s, check.result.mode, languageName)}
-      {check.result.mode === 'numbers' && (deviceOk ? '' : " The wording was not checked, because Chrome's on-device model is not available.")}
+      {check.result.mode === 'numbers' && (deviceOk ? '' : numbersOnlyNote(check.result.skipped ?? 0))}
       {s.conflicts > 0 && ' Press a mark to see what the letter says.'}
     </p>
   )

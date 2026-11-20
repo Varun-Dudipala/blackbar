@@ -27,6 +27,8 @@ export interface CheckResult {
   statements: CheckedStatement[]
   /** Statements the model was asked about. */
   askedModel: number
+  /** Statements left out because code alone could not judge them (numbers mode only). */
+  skipped?: number
   ms: number
   calls: number
 }
@@ -88,7 +90,7 @@ export async function checkAnswer(
 
   if (!verifier) {
     const out = statements.map((s) => settleNumbersOnly(s, f(s.id).tokens, f(s.id).close, f(s.id).plainly)).filter((x): x is CheckedStatement => x !== null)
-    return { mode: 'numbers', statements: out, askedModel: 0, ms: Math.round(now() - t0), calls: 0 }
+    return { mode: 'numbers', statements: out, askedModel: 0, skipped: statements.length - out.length, ms: Math.round(now() - t0), calls: 0 }
   }
 
   // The model is asked only about statements code could not settle.

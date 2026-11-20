@@ -3,7 +3,10 @@ import { buildSamples } from '../letters/samples'
 import { isCheckable, splitSentences, splitStatements } from './statements'
 import { checkTokens, extractTokens, indexLetter, normMoney } from './tokens'
 import { selectPassages, splitPassages } from './passages'
-import { blockVerdict, findQuote, settle, settleNumbersOnly, summarise, summaryLine } from './verdicts'
+import { blockVerdict, findQuote, numbersOnlyNote, settle, settleNumbersOnly, summarise, summaryLine } from './verdicts'
+import { buildTestAnswer } from '../letters/testAnswers'
+import { detect } from '../seal/detectors'
+import { seal } from '../seal/redact'
 import { batchItems, verdictPrompt } from './prompt'
 import { checkAnswer, type Verifier } from './run'
 import { estimateTokens } from '../lib/chunk'
@@ -281,5 +284,28 @@ describe('windows and other languages', () => {
     expect(summaryLine(summarise(r.statements), 'other-language', 'Spanish')).toBe(
       'Checked on this device: this answer is in Spanish, so its wording was not compared with the letter. Dates, amounts and references were compared in all 2 statements; 1 matches the letter. 1 has a number the letter does not contain.',
     )
+  })
+})
+
+describe('the test answers without a device model', () => {
+  const today = { year: 2026, month: 11, day: 18 }
+  for (const sample of buildSamples(today)) {
+    it(`flags the moved deadline and the invented fee, and counts what code could not check (${sample.id})`, async () => {
+      const { text } = buildTestAnswer(sample.id, today)
+      const sealed = seal(sample.text, detect(sample.text))
+      const r = await checkAnswer(text, sealed.entries, sample.text, null, () => {}, new AbortController().signal)
+      expect(r.mode).toBe('numbers')
+      const flagged = r.statements.filter((s) => s.verdict === 'conflicts' || s.verdict === 'not_found')
+      expect(flagged.length).toBeGreaterThanOrEqual(2)
+      // The invented requirement has no date, amount or number, so code alone cannot judge it.
+      expect(r.skipped).toBeGreaterThanOrEqual(1)
+      expect(r.statements.length + (r.skipped ?? 0)).toBe(splitStatements(text).length)
+    })
+  }
+
+  it('says how many statements were not checked', () => {
+    expect(numbersOnlyNote(0)).toBe(" The wording was not checked, because Chrome's on-device model is not available.")
+    expect(numbersOnlyNote(1)).toBe(" 1 statement has no date, amount or number to compare and was not checked, because Chrome's on-device model is not available. Read it against the letter yourself.")
+    expect(numbersOnlyNote(2)).toContain('2 statements have no date, amount or number to compare and were not checked')
   })
 })
